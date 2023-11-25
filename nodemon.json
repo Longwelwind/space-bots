@@ -1,0 +1,7 @@
+{
+    "events": {
+        "restart": "yarn run generate-schema"
+    },
+    "ignore": ["./src/schema.d.ts"],
+    "ext": "js,ts,json,yaml"
+}

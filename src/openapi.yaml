@@ -1,0 +1,690 @@
+openapi: 3.0.0
+info:
+    title: Space bots
+    version: 1.0.0
+servers:
+    - url: "{host}/v1/"
+      description: Main server
+      variables:
+          host:
+              default: https://space-bots.longwelwind.net
+
+security:
+    - bearerAuth: []
+
+paths:
+    /users/me:
+        get:
+            summary: Returns information about yourself
+            tags:
+                - Users
+            responses:
+                "200":
+                    description: Info about yourself
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                    name:
+                                        type: string
+                                    credits:
+                                        type: integer
+                                    registeredAt:
+                                        type: string
+                                        format: date-time
+                                    registered:
+                                        type: boolean
+                                        description: Whether this user has already registered their username if they logged in via a third-party provider
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /users/register:
+        post:
+            summary: Register yourself
+            tags:
+                - Users
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+            responses:
+                "200":
+                    description: TODO
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["name_taken"]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /systems/{systemId}:
+        get:
+            summary: Return info about a system
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+            responses:
+                "200":
+                    description: Info about the system
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - id
+                                    - name
+                                    - x
+                                    - y
+                                    - neighboringSystems
+                                properties:
+                                    id:
+                                        type: string
+                                    name:
+                                        type: string
+                                    asteroid:
+                                        type: object
+                                        required:
+                                            - miningResourceId
+                                        properties:
+                                            miningResourceId:
+                                                type: string
+                                    station:
+                                        type: object
+                                        required:
+                                            - buyShips
+                                            - directSell
+                                        properties:
+                                            buyShips:
+                                                type: boolean
+                                                description: Whether you can buy ships at this station
+                                            directSell:
+                                                type: boolean
+                                                description: Whether you can sell resources directly at this station
+                                    x:
+                                        type: number
+                                    y:
+                                        type: number
+                                    neighboringSystems:
+                                        type: array
+                                        description: List of IDs of the systems
+                                        items:
+                                            type: object
+                                            required:
+                                                - systemId
+                                            properties:
+                                                systemId:
+                                                    type: string
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/travel:
+        post:
+            summary: Order your fleet to travel to an adjacent system
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - destinationSystemId
+                            properties:
+                                destinationSystemId:
+                                    type: string
+            responses:
+                "200":
+                    description: TODO
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    arrivalTime:
+                                        type: string
+                                        format: date-time
+                                    duration:
+                                        type: number
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "same_system",
+                                                "system_not_reachable",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet or system not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/mine:
+        post:
+            summary: Order your fleet to start minining
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            responses:
+                "200":
+                    description: TODO
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    finishTime:
+                                        type: string
+                                        format: date-time
+                                    duration:
+                                        type: number
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["fleet_busy", "cant_mine"]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/buy-ships:
+        post:
+            summary: Buys ship at a fair, market price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - shipsToBuy
+                            properties:
+                                shipsToBuy:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                        minimum: 1
+            responses:
+                "200":
+                    description: Ships bought
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    creditsSpent:
+                                        type: integer
+                "400":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_enough_money", "no_station", "too_much_ships_in_fleet"]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/my:
+        get:
+            summary: Returns the list of your fleets
+            tags:
+                - Fleets
+            responses:
+                "200":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Fleet"
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}:
+        get:
+            summary: Returns info about a fleet
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            responses:
+                "200":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Fleet"
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/direct-sell:
+        post:
+            summary: Sell the content of the cargo of a fleet at a flat price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - resources
+                            properties:
+                                resources:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                        minimum: 1
+            responses:
+                "200":
+                    description: Resources were successfuly sold
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - creditsGained
+                                properties:
+                                    creditsGained:
+                                        type: integer
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "no_station",
+                                                "not_enough_resources",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/transfer:
+        post:
+            summary: Transfer ships and cargo to an other fleet
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                targetFleetId:
+                                    type: string
+                                resourcesFromFleetToTarget:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                resourcesFromTargetToFleet:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                shipsFromFleetToTarget:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                shipsFromTargetToFleet:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+            responses:
+                "200":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    newFleetId:
+                                        type: string
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "new_fleet_must_have_ships",
+                                                "cant_transfer_from_target_when_creating_fleet",
+                                                "not_enough_resources",
+                                                "not_enough_ships",
+                                                "too_much_ships_in_fleet",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /ship-types:
+        get:
+            summary: Lists all the types of ships
+            tags:
+                - Ship Types
+            responses:
+                "200":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        id:
+                                            type: string
+                                        name:
+                                            type: string
+                                        price:
+                                            type: integer
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /resources:
+        get:
+            summary: Lists all the resources
+            tags:
+                - Resources
+            responses:
+                "200":
+                    description: A JSON array of user names
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        id:
+                                            type: string
+                                        name:
+                                            type: string
+                                        price:
+                                            type: integer
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+    responses:
+        "401_unauthorized":
+            description: No credentials or invalid credentials
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            error:
+                                type: string
+                                enum: ["unauthorized"]
+        "429_too_many_requests":
+            description: Too many requests were sent
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            error:
+                                type: string
+                                enum: ["rate_limited"]
+    parameters:
+        fleetId:
+            in: path
+            name: fleetId
+            schema:
+                type: string
+            required: true
+            description: ID of the fleet
+        systemId:
+            in: path
+            name: systemId
+            schema:
+                type: string
+            required: true
+            description: ID of the system
+    schemas:
+        Fleet:
+            type: object
+            required:
+                - id
+                - owner
+                - cargo
+                - ships
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: "ID of the fleet"
+                owner:
+                    oneOf:
+                        - type: object
+                          required: [type, userId]
+                          properties:
+                              type:
+                                  type: string
+                                  enum: ["user"]
+                              userId:
+                                  type: string
+                locationSystemid:
+                    type: string
+                    nullable: true
+                    description: |-
+                        ID of the system where this fleet is located.
+                        Is null when travelling to an other system
+                currentAction:
+                    oneOf:
+                        - type: object
+                          nullable: true
+                        - type: object
+                          required: [type]
+                          properties:
+                              type:
+                                  type: string
+                                  enum: ["mining"]
+                              finishTime:
+                                  type: string
+                        - type: object
+                          required: [type]
+                          properties:
+                              type:
+                                  type: string
+                                  enum: ["traveling"]
+                              departueTime:
+                                  type: string
+                              arrivalTime:
+                                  type: string
+                              travelingFromSystemId:
+                                  type: string
+                              travelingToSystemId:
+                                  type: string
+                cargo:
+                    type: object
+                    example: { "aluminium": 20 }
+                ships:
+                    type: object
+                    example: { "miner": 2 }
