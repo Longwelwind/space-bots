@@ -1,4 +1,3 @@
-import "dotenv/config";
 import app, { launchDelayedTasks } from "./app";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";

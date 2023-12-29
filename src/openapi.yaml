@@ -452,9 +452,101 @@ paths:
                                         enum: ["not_found"]
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/build-ships:
+        post:
+            summary: |
+                Build ships using resources
+            description: |
+                Build ships using resources in the cargo of the fleet. The cost of building a
+                ship can be found by calling `GET /ship-types`.
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                shipsToBuild:
+                                    type: object
+                                    additionalProperties:
+                                        type: integer
+                                        minimum: 1
+
+                        examples:
+                            example:
+                                value:
+                                    shipsToBuild:
+                                        miner: 2
+                                        fighter: 3
+                                summary: Builds 2 miner ships and 3 figher ships
+            responses:
+                "200":
+                    description: Ships successfuly built
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    resourcesSpent:
+                                        type: object
+                                        additionalProperties:
+                                            type: integer
+                            examples:
+                                example:
+                                    value:
+                                        resourcesSpent:
+                                            aluminium: 4
+                                            zinc: 2
+                                    summary: Building those ships has cost 4 aluminium and 2 zinc
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "not_enough_resources",
+                                                "too_much_ships_in_fleet",
+                                                "not_buildable_ship_type",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
     /fleets/{fleetId}/transfer:
         post:
             summary: Transfer ships and cargo to an other fleet
+            description: |
+                ⚠️ Transfering all the ships out of a fleet will destroy it, losing any cargo this fleet had in the process
             tags:
                 - Fleets
             parameters:
@@ -511,6 +603,296 @@ paths:
                                                 "not_enough_resources",
                                                 "not_enough_ships",
                                                 "too_much_ships_in_fleet",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/market-order-sell:
+        post:
+            summary: Place an order to sell a quantity of ressources at a certain price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - resourceId
+                            properties:
+                                resourceId:
+                                    type: string
+                                quantity:
+                                    type: integer
+                                    minimum: 1
+                                price:
+                                    type: integer
+                                    minimum: 1
+            responses:
+                "200":
+                    description: Resources were successfuly sold
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "no_station",
+                                                "not_enough_resources",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/market-instant-sell:
+        post:
+            summary: Sell a quantity of resources at the current best price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - resourceId
+                            properties:
+                                resourceId:
+                                    type: string
+                                quantity:
+                                    type: integer
+                                    minimum: 1
+            responses:
+                "200":
+                    description: Resources were successfuly sold
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - price
+                                    - creditsGained
+                                properties:
+                                    price:
+                                        type: integer
+                                    creditsGained:
+                                        type: integer
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "no_station",
+                                                "not_enough_resources",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/market-order-buy:
+        post:
+            summary: Place an order to buy a quantity of ressources at a certain price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - resourceId
+                            properties:
+                                resourceId:
+                                    type: string
+                                quantity:
+                                    type: integer
+                                    minimum: 1
+                                price:
+                                    type: integer
+                                    minimum: 1
+            responses:
+                "200":
+                    description: Resources were successfuly sold
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "no_station",
+                                                "not_enough_resources",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "403":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_owner"]
+                "404":
+                    description: Fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /fleets/{fleetId}/market-instant-buy:
+        post:
+            summary: Sell a quantity of resources at the current best price
+            tags:
+                - Fleets
+            parameters:
+                - $ref: "#/components/parameters/fleetId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - resourceId
+                            properties:
+                                resourceId:
+                                    type: string
+                                quantity:
+                                    type: integer
+                                    minimum: 1
+            responses:
+                "200":
+                    description: Resources were successfuly sold
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - price
+                                    - creditsGained
+                                properties:
+                                    price:
+                                        type: integer
+                                    creditsGained:
+                                        type: integer
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "no_station",
+                                                "not_enough_resources",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"

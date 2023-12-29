@@ -298,6 +298,25 @@ export async function changeShipsOfFleets(
         ),
     );
 
+    // Check if fleets need to be destroyed because there is no more ships
+    const fleetIdsToBeDestroyed = (
+        await Promise.all(
+            Object.keys(shipsToChangeOfFleets).map(async (fleetId) => {
+                return await Fleet.findByPk(fleetId, {
+                    transaction,
+                    include: FleetComposition,
+                });
+            }),
+        )
+    )
+        .filter((fleet) => fleet.fleetCompositions.length == 0)
+        .map((f) => f.id);
+
+    await Fleet.destroy({
+        where: { id: fleetIdsToBeDestroyed },
+        transaction,
+    });
+
     return true;
 }
 
@@ -543,7 +562,7 @@ app.use((err, req, res, next) => {
         errorCode = err.errorCode;
         message = err.message;
 
-        LOGGER.child({ traceId: res.locals.traceId }).warn(
+        LOGGER.child({ traceId: res.locals.traceId }).info(
             "HttpError occured",
             err,
         );
@@ -562,7 +581,7 @@ app.use((err, req, res, next) => {
                 errors: err.errors,
             };
 
-            LOGGER.child({ traceId: res.locals.traceId }).warn(
+            LOGGER.child({ traceId: res.locals.traceId }).info(
                 "request validation error occured",
                 err,
             );

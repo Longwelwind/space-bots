@@ -8,6 +8,7 @@ import {
     InventoryItem,
     Resource,
     ShipType,
+    ShipTypeBuildResources,
     System,
     SystemLink,
     User,
@@ -24,12 +25,10 @@ import {
 import { serializeFleet } from "../serializers";
 import oppositeOfValues from "../utils/oppositeOfValues";
 import mergeByAdding from "../utils/mergeByAdding";
-import transaction from "../utils/transaction";
 import _ from "lodash";
 import logger from "../utils/logger";
 import path from "path";
 import HttpError from "../utils/HttpError";
-import { Http } from "winston/lib/winston/transports";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -296,6 +295,122 @@ export default function addFleetsRoutes(router: Router) {
     });
 
     router.post<
+        paths["/fleets/{fleetId}/build-ships"]["post"]["parameters"]["path"],
+        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][200]["content"]["application/json"]
+        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][400]["content"]["application/json"]
+        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][403]["content"]["application/json"],
+        paths["/fleets/{fleetId}/build-ships"]["post"]["requestBody"]["content"]["application/json"]
+    >("/fleets/:fleetId/build-ships", async (req, res) => {
+        await sequelize.transaction(async (transaction) => {
+            const fleet = await getOrNotFound<Fleet>(
+                Fleet,
+                req.params.fleetId,
+                res,
+                {
+                    transaction,
+                    lock: true,
+                    include: [
+                        { model: System, as: "location", required: true },
+                    ],
+                },
+            );
+
+            // Check that they own this fleet
+            if (fleet.ownerUserId != res.locals.user.id) {
+                throw new HttpError(403, "not_owner");
+            }
+
+            // Check that this system has a station
+            if (!fleet.location.hasStation) {
+                throw new HttpError(400, "no_station");
+            }
+
+            const shipsToBuild = req.body["shipsToBuild"] as {
+                [shipTypeId: string]: number;
+            };
+
+            // Check that received shipTypeIds are correct
+            const shipTypesEntries = await Promise.all(
+                Object.keys(shipsToBuild).map(async (shipTypeId) => {
+                    const shipType = await getOrNotFound<ShipType>(
+                        ShipType,
+                        shipTypeId,
+                        res,
+                        { transaction, include: ShipTypeBuildResources },
+                    );
+
+                    return [shipType.id, shipType] as [string, ShipType];
+                }),
+            );
+
+            const shipTypes = Object.fromEntries(shipTypesEntries);
+
+            // Check that all ships can be built
+            if (
+                Object.values(shipTypes).some(
+                    (shipType) => shipType.costToBuild.length == 0,
+                )
+            ) {
+                throw new HttpError(
+                    400,
+                    "not_buildable_ship_type",
+                    "Some of the ship types sent cannot be built using resources",
+                );
+            }
+
+            // Compute total resource cost to build all those ships
+            const resourceCost = _.reduce(
+                _.flatMap(
+                    Object.values(shipTypes).map(
+                        (shipType) => shipType.costToBuild,
+                    ),
+                ),
+                (p, c) => {
+                    if (!(c.resourceId in p)) {
+                        p[c.resourceId] = 0;
+                    }
+
+                    p[c.resourceId] += shipsToBuild[c.shipTypeId] * c.quantity;
+
+                    return p;
+                },
+                {},
+            );
+
+            const resourceCostAsNegative = _.mapValues(resourceCost, (v) => -v);
+
+            const enoughResource = await changeResourcesOfInventories(
+                {
+                    [fleet.inventoryId]: resourceCostAsNegative,
+                },
+                transaction,
+            );
+
+            if (!enoughResource) {
+                throw new HttpError(400, "not_enough_resources");
+            }
+
+            // Add ships to fleet
+            await changeShipsOfFleets(
+                { [fleet.id]: shipsToBuild },
+                transaction,
+            );
+
+            // Check if fleets don't have too much ships
+            const totalShips = await FleetComposition.sum("quantity", {
+                where: { fleetId: fleet.id },
+                transaction,
+            });
+
+            if (totalShips > 100) {
+                throw new HttpError(400, "too_much_ships_in_fleet");
+            }
+
+            res.json({ resourcesSpent: resourceCost });
+        });
+    });
+
+    router.post<
         paths["/fleets/{fleetId}/transfer"]["post"]["parameters"]["path"],
         | paths["/fleets/{fleetId}/transfer"]["post"]["responses"][200]["content"]["application/json"]
         | paths["/fleets/{fleetId}/transfer"]["post"]["responses"][400]["content"]["application/json"]
@@ -449,7 +564,6 @@ export default function addFleetsRoutes(router: Router) {
                     {
                         model: FleetComposition,
                         include: [ShipType],
-                        required: true,
                     },
                 ],
             },

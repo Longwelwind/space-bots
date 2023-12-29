@@ -1,4 +1,3 @@
-import "dotenv/config";
 import {
     Fleet,
     FleetComposition,
@@ -11,7 +10,7 @@ import {
     User,
     sync,
 } from "./database";
-import { UUIDV4_1 } from "../tests/helpers";
+import { UUIDV4_1 } from "./__tests__/helpers";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";
 

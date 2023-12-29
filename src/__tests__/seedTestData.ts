@@ -6,11 +6,12 @@ import {
     InventoryItem,
     Resource,
     ShipType,
+    ShipTypeBuildResources,
     System,
     SystemLink,
     User,
     checkProductionDatabase,
-} from "../src/database";
+} from "../database";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
 
 interface TestData {
@@ -118,6 +119,11 @@ export default async function seedTestData(testData: TestData) {
         ],
         options,
     );
+
+    await ShipTypeBuildResources.bulkCreate([
+        { shipTypeId: "fighter", resourceId: "aluminium", quantity: 10 },
+        { shipTypeId: "fighter", resourceId: "zinc", quantity: 15 },
+    ]);
 
     await User.create(
         {

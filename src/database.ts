@@ -17,15 +17,16 @@ import {
 import { Column, CreatedAt, PrimaryKey, Table } from "sequelize-typescript";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";
+import {
+    DATABASE_HOSTNAME,
+    DATABASE_USERNAME,
+    DATABASE_PASSWORD,
+    DATABASE_DATABASE,
+    DATABASE_PORT,
+    CACERT,
+} from "./config";
 
 const LOGGER = logger(moduleName(__filename));
-
-const DATABASE_HOSTNAME = process.env.DATABASE_HOSTNAME;
-const DATABASE_USERNAME = process.env.DATABASE_USERNAME;
-const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-const DATABASE_DATABASE = process.env.DATABASE_DATABASE;
-const DATABASE_PORT = process.env.DATABASE_PORT || 5432;
-const CACERT = process.env.CACERT;
 
 const commonOptions = {
     define: { noPrimaryKey: true },
@@ -192,6 +193,31 @@ export class ShipType extends Model {
 
     @Column({ allowNull: false, defaultValue: 0 })
     declare price: number;
+
+    @HasMany(() => ShipTypeBuildResources)
+    costToBuild: ShipTypeBuildResources[];
+}
+
+@Table({ modelName: "ShipTypeBuildResources" })
+export class ShipTypeBuildResources extends Model {
+    @PrimaryKey
+    @ForeignKey(() => ShipType)
+    @Column
+    declare shipTypeId: string;
+
+    @BelongsTo(() => ShipType)
+    shipType: ShipType;
+
+    @PrimaryKey
+    @ForeignKey(() => Resource)
+    @Column
+    declare resourceId: string;
+
+    @BelongsTo(() => Resource)
+    resource: Resource;
+
+    @Column
+    declare quantity: number;
 }
 
 @Table({ modelName: "Fleets" })
@@ -383,6 +409,7 @@ sequelize.addModels([
     StationInventory,
     ShipType,
     FleetComposition,
+    ShipTypeBuildResources,
 ]);
 
 export async function sync(options = {}) {
