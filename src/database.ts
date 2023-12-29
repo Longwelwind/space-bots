@@ -24,42 +24,18 @@ import {
     DATABASE_DATABASE,
     DATABASE_PORT,
     CACERT,
+    DATABASE_URL,
 } from "./config";
 
 const LOGGER = logger(moduleName(__filename));
 
-const commonOptions = {
+// @ts-expect-error Sequelize being sequelize
+export const sequelize = new Sequelize(DATABASE_URL, {
     define: { noPrimaryKey: true },
     logging: (sql: string, _) => {
         LOGGER.debug("SQL query", { sql });
     },
-};
-
-export const sequelize = new Sequelize(
-    // @ts-expect-error Sequelize being sequelize
-    {
-        dialect: "postgres",
-        host: DATABASE_HOSTNAME,
-        username: DATABASE_USERNAME,
-        password: DATABASE_PASSWORD,
-        database: DATABASE_DATABASE,
-        port: DATABASE_PORT,
-        define: { noPrimaryKey: true },
-        ...(CACERT
-            ? {
-                  dialectOptions: {
-                      ssl: {
-                          require: true,
-                          rejectUnauthorized: false,
-                          ca: CACERT,
-                      },
-                  },
-                  ssl: true,
-              }
-            : {}),
-        ...commonOptions,
-    },
-);
+});
 
 @Table({ modelName: "Resources" })
 export class Resource extends Model {
@@ -362,6 +338,35 @@ export class StationInventory extends Model {
     declare inventoryId: string;
 }
 
+@Table({ modelName: "MarketOrders" })
+export class MarketOrder extends Model {
+    @BelongsTo(() => System)
+    system: System;
+
+    @ForeignKey(() => System)
+    @PrimaryKey
+    @Column
+    declare systemId: string;
+
+    @BelongsTo(() => User)
+    user: User;
+
+    @ForeignKey(() => User)
+    @PrimaryKey
+    @Column({ type: UUID })
+    declare userId: string;
+
+    @BelongsTo(() => Resource)
+    resource: Resource;
+
+    @ForeignKey(() => Resource)
+    @Column
+    declare resourceId: string;
+
+    @Column({ type: BIGINT })
+    quantity: number;
+}
+
 @Table({
     modelName: "SystemLinks",
     validate: {
@@ -410,6 +415,7 @@ sequelize.addModels([
     ShipType,
     FleetComposition,
     ShipTypeBuildResources,
+    MarketOrder,
 ]);
 
 export async function sync(options = {}) {

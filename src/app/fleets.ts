@@ -29,6 +29,7 @@ import _ from "lodash";
 import logger from "../utils/logger";
 import path from "path";
 import HttpError from "../utils/HttpError";
+import setupTransaction from "../utils/setupTransaction";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -40,7 +41,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/mine"]["post"]["responses"][403]["content"]["application/json"],
         null
     >("/fleets/:fleetId/mine", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params["fleetId"],
@@ -48,14 +49,16 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: [
-                        { model: System, as: "location", required: true },
-                        { model: Inventory, required: true },
-                    ],
+                    include: [{ model: Inventory, required: true }],
                 },
             );
 
-            if (fleet == null) return;
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
+            );
 
             // Check that they own this fleet
             if (fleet.ownerUserId != res.locals.user.id) {
@@ -68,7 +71,7 @@ export default function addFleetsRoutes(router: Router) {
             }
 
             // Check that the system can be mined
-            const miningResourceId = fleet.location.miningResourceId;
+            const miningResourceId = systemOfFleet.miningResourceId;
             if (miningResourceId == null) {
                 throw new HttpError(400, "cant_mine");
             }
@@ -114,7 +117,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/direct-sell"]["post"]["responses"][403]["content"]["application/json"],
         paths["/fleets/{fleetId}/direct-sell"]["post"]["requestBody"]["content"]["application/json"]
     >("/fleets/:fleetId/direct-sell", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params.fleetId,
@@ -122,14 +125,16 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: [
-                        { model: System, as: "location", required: true },
-                        { model: Inventory, required: true },
-                    ],
+                    include: [{ model: Inventory, required: true }],
                 },
             );
 
-            if (fleet == null) return;
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
+            );
 
             // Check that they own this fleet
             if (fleet.ownerUserId != res.locals.user.id) {
@@ -137,7 +142,7 @@ export default function addFleetsRoutes(router: Router) {
             }
 
             // Check that this system has a station
-            if (!fleet.location.hasStation) {
+            if (!systemOfFleet.hasStation) {
                 throw new HttpError(400, "no_station");
             }
 
@@ -204,7 +209,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/buy-ships"]["post"]["responses"][403]["content"]["application/json"],
         paths["/fleets/{fleetId}/buy-ships"]["post"]["requestBody"]["content"]["application/json"]
     >("/fleets/:fleetId/buy-ships", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params.fleetId,
@@ -212,13 +217,15 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: [
-                        { model: System, as: "location", required: true },
-                    ],
                 },
             );
 
-            if (fleet == null) return;
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
+            );
 
             // Check that they own this fleet
             if (fleet.ownerUserId != res.locals.user.id) {
@@ -231,7 +238,7 @@ export default function addFleetsRoutes(router: Router) {
             });
 
             // Check that this system has a station
-            if (!fleet.location.hasStation) {
+            if (!systemOfFleet.hasStation) {
                 throw new HttpError(400, "no_station");
             }
 
@@ -301,7 +308,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][403]["content"]["application/json"],
         paths["/fleets/{fleetId}/build-ships"]["post"]["requestBody"]["content"]["application/json"]
     >("/fleets/:fleetId/build-ships", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params.fleetId,
@@ -309,10 +316,14 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: [
-                        { model: System, as: "location", required: true },
-                    ],
                 },
+            );
+
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
             );
 
             // Check that they own this fleet
@@ -321,7 +332,7 @@ export default function addFleetsRoutes(router: Router) {
             }
 
             // Check that this system has a station
-            if (!fleet.location.hasStation) {
+            if (!systemOfFleet.hasStation) {
                 throw new HttpError(400, "no_station");
             }
 
@@ -417,7 +428,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/transfer"]["post"]["responses"][403]["content"]["application/json"],
         paths["/fleets/{fleetId}/transfer"]["post"]["requestBody"]["content"]["application/json"]
     >("/fleets/:fleetId/transfer", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params["fleetId"],
@@ -425,14 +436,9 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: [
-                        { model: System, as: "location", required: true },
-                        { model: Inventory, required: true },
-                    ],
+                    include: [{ model: Inventory, required: true }],
                 },
             );
-
-            if (fleet == null) return;
 
             // Check that they own this fleet
             if (fleet.ownerUserId != res.locals.user.id) {
@@ -483,11 +489,16 @@ export default function addFleetsRoutes(router: Router) {
             let targetFleet: Fleet = null;
             let newFleet = false;
             if (req.body.targetFleetId != null) {
-                targetFleet = await Fleet.findOne({
-                    where: { id: req.body.targetFleetId },
-                    transaction,
-                    lock: true,
-                });
+                targetFleet = await getOrNotFound<Fleet>(
+                    Fleet,
+                    req.body.targetFleetId,
+                    res,
+                    {
+                        transaction,
+                        lock: true,
+                        include: [{ model: Inventory, required: true }],
+                    },
+                );
             } else {
                 // Check that ships are passed to a future new Fleet
                 if (
@@ -508,16 +519,26 @@ export default function addFleetsRoutes(router: Router) {
                 newFleet = true;
             }
 
+            const systemOfTargetFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
+            );
+
             // Check that they own the target fleet
             if (targetFleet.ownerUserId != res.locals.user.id) {
                 throw new HttpError(403, "not_owner");
             }
 
-            // Both fleets must not be busy
+            // Check that the two fleets are in the same location
+            if (fleet.locationSystemId != systemOfTargetFleet.id) {
+                throw new HttpError(400, "not_in_same_location");
+            }
+
             if (
                 fleet.currentAction != "idling" ||
                 targetFleet.currentAction != "idling"
             ) {
+                // Both fleets must not be busy
                 throw new HttpError(400, "fleet_busy");
             }
 
@@ -579,7 +600,7 @@ export default function addFleetsRoutes(router: Router) {
         | paths["/fleets/{fleetId}/travel"]["post"]["responses"][403]["content"]["application/json"],
         paths["/fleets/{fleetId}/travel"]["post"]["requestBody"]["content"]["application/json"]
     >("/fleets/:fleetId/travel", async (req, res) => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const fleet = await getOrNotFound<Fleet>(
                 Fleet,
                 req.params["fleetId"],
@@ -587,8 +608,14 @@ export default function addFleetsRoutes(router: Router) {
                 {
                     transaction,
                     lock: true,
-                    include: { model: System, as: "location", required: true },
                 },
+            );
+
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
             );
 
             if (fleet == null) return;
@@ -617,7 +644,7 @@ export default function addFleetsRoutes(router: Router) {
             if (destinationSystem == null) return;
 
             // Check if the destination system is reachable
-            const originSystem = fleet.location;
+            const originSystem = systemOfFleet;
 
             if (originSystem.id == destinationSystemId) {
                 throw new HttpError(400, "same_system");
@@ -661,6 +688,12 @@ export default function addFleetsRoutes(router: Router) {
             res.json({
                 arrivalTime: arrivalTime.toISOString(),
                 duration: travelDuration,
+            });
+
+            LOGGER.info("ship travelling", {
+                travelingFromSystemId: originSystem.id,
+                destinationSystemId,
+                arrivalTime,
             });
         });
     });

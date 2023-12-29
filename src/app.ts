@@ -11,6 +11,7 @@ import {
     sequelize,
 } from "./database";
 import getOrNotFound from "./utils/getOrNotFound";
+import { v4 } from "uuid";
 import {
     serializeSystem,
     serializeUser,
@@ -29,12 +30,14 @@ import YAML from "yaml";
 import addFleetsRoutes from "./app/fleets";
 import addShipTypesRoutes from "./app/shipTypes";
 import addResourcesRoutes from "./app/resources";
-import logger, { loggerMiddleware } from "./utils/logger";
+import logger, { loggerMiddleware, traceIdStore } from "./utils/logger";
 import moduleName from "./utils/moduleName";
 import HttpError from "./utils/HttpError";
 import { rateLimit } from "express-rate-limit";
 import { NODE_ENV } from "./config";
 import authMiddleware from "./utils/authMiddleware";
+import _ from "lodash";
+import setupTransaction from "./utils/setupTransaction";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -63,7 +66,7 @@ nonGameRouter.post("/users/login", async (req, res) => {
 
     if (user == null) {
         // Generate a user and its starting spot
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
             const pool =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             const token = "spbo_" + generateApiKey({ length: 32, pool });
@@ -138,7 +141,7 @@ gameRouter.post<
     | paths["/users/register"]["post"]["responses"][400]["content"]["application/json"],
     paths["/users/register"]["post"]["requestBody"]["content"]["application/json"]
 >("/users/register", async (req, res) => {
-    await sequelize.transaction(async (transaction) => {
+    await setupTransaction(sequelize, async (transaction) => {
         const name = req.body["name"];
 
         // Check if name is already taken
@@ -432,23 +435,47 @@ export async function changeResourcesOfInventories(
     return true;
 }
 
+const scheduledTaskTimeouts: NodeJS.Timeout[] = [];
+
 function secheduleDelayedTask(executionTime: Date, task: () => void) {
     const delay = Math.max(0, executionTime.getTime() - Date.now());
 
-    setTimeout(() => {
-        task();
+    const taskTimeout = setTimeout(() => {
+        _.pull(scheduledTaskTimeouts, taskTimeout);
+
+        traceIdStore.run(v4(), task);
     }, delay);
+
+    scheduledTaskTimeouts.push(taskTimeout);
+}
+
+export function unscheduleAllDelayedTasks() {
+    scheduledTaskTimeouts.map((taskTimeout) => clearTimeout(taskTimeout));
 }
 
 export function scheduleFleetArrival(fleetId: string, arrivalTime: Date) {
     secheduleDelayedTask(arrivalTime, async () => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
+            LOGGER.info("fleet arrival begin", { fleetId });
             const fleet = await Fleet.findByPk(fleetId, {
                 transaction,
                 lock: true,
             });
 
             const destinationSystemId = fleet.travelingToSystemId;
+
+            if (destinationSystemId == null) {
+                LOGGER.error("destinationSystemId null", { fleetId });
+                throw new Error();
+            }
+
+            if (fleet.currentAction != "traveling") {
+                LOGGER.error("fleet's current action is not traveling", {
+                    fleetId,
+                    currentAction: fleet.currentAction,
+                });
+                throw new Error();
+            }
 
             fleet.currentAction = "idling";
             fleet.travelingFromSystemId = null;
@@ -458,13 +485,16 @@ export function scheduleFleetArrival(fleetId: string, arrivalTime: Date) {
             fleet.locationSystemId = destinationSystemId;
 
             await fleet.save({ transaction });
+
+            LOGGER.info("fleet arrival end", { fleetId });
         });
     });
 }
 
 export function scheduleMiningFinish(fleetId: string, miningFinishTime: Date) {
     secheduleDelayedTask(miningFinishTime, async () => {
-        await sequelize.transaction(async (transaction) => {
+        await setupTransaction(sequelize, async (transaction) => {
+            LOGGER.info("mining finish begin", { fleetId });
             const fleet = await Fleet.findByPk(fleetId, {
                 transaction,
                 lock: true,
@@ -480,6 +510,14 @@ export function scheduleMiningFinish(fleetId: string, miningFinishTime: Date) {
 
             // Get resource mined
             const miningResourceId = fleet.miningResourceId;
+
+            if (fleet.currentAction != "mining") {
+                LOGGER.error("fleet's current action is not mining", {
+                    fleetId,
+                    currentAction: fleet.currentAction,
+                });
+                throw new Error();
+            }
 
             // Get mining power of fleet
             const miningPower = Number(
@@ -503,6 +541,7 @@ export function scheduleMiningFinish(fleetId: string, miningFinishTime: Date) {
             fleet.miningFinishTime = null;
 
             await fleet.save({ transaction });
+            LOGGER.info("mining finish end", { fleetId });
         });
     });
 }

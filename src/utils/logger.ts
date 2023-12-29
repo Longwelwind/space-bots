@@ -9,7 +9,10 @@ const httpTransportOptions = {
     ssl: true,
 };
 
-const traceIdStore = new AsyncLocalStorage<{ traceId: string }>();
+// Generate a unique instance-id each time a server is launched
+export const instanceId = v4();
+
+export const traceIdStore = new AsyncLocalStorage<{ traceId: string }>();
 
 export function loggerMiddleware(req, res, next) {
     const traceId = v4();
@@ -27,14 +30,18 @@ const rootLogger = createLogger({
         format.timestamp(),
         NODE_ENV != "production" ? format.colorize() : format.label(),
         format((info) => {
+            // Add instanceId
+            const transformedInfo = { ...info, instanceId };
+
+            // Add traceId
             const store = traceIdStore.getStore();
             if (store) {
                 return {
-                    ...info,
+                    ...transformedInfo,
                     traceId: store.traceId,
                 };
             } else {
-                return info;
+                return transformedInfo;
             }
         })(),
         NODE_ENV == "production" ? format.json() : format.simple(),
