@@ -150,7 +150,7 @@ describe("/v1/fleets", () => {
         expect(resSecondFleet.status).toEqual(404);
     });
 
-    test("fleet transfer to transfer resources and ships to an other fleet", async () => {
+    test("POST /v1/fleets/{fleetId}/transfer should transfer resources and ships to an other fleet", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -192,6 +192,41 @@ describe("/v1/fleets", () => {
 
         expect(resFirstFleet.body.cargo).toEqual({ aluminium: 10 + 3 });
         expect(resSecondFleet.body.cargo).toEqual({ aluminium: 9 - 3 });
+    });
+
+    test("POST /v1/fleets/{fleetId}/transfer-to-station should transfer resources to the station of the system", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 10 },
+                    cargo: { aluminium: 10 },
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/transfer-to-station`)
+            .set("Authorization", "Bearer longwelwind")
+            .send({
+                resourcesFromFleetToStation: { aluminium: 3 },
+            });
+
+        expect(res.status).toEqual(200);
+
+        const resFleet = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+        const resSystem = await request(app)
+            .get(`/v1/systems/omega`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resFleet.body.cargo).toEqual({ aluminium: 10 - 3 });
+        console.log(resSystem.body);
+        expect(resSystem.body.station.cargo).toEqual({ aluminium: 3 });
     });
 
     test("fleet transfer should not authorize new fleet with no ships", async () => {
@@ -330,7 +365,7 @@ describe("/v1/fleets", () => {
             .get(`/v1/users/me`)
             .set("Authorization", "Bearer longwelwind");
 
-        expect(resMe.body).toMatchObject({ credits: 1000000 + 40 });
+        expect(resMe.body).toMatchObject({ credits: 40 });
 
         const resThree = await request(app)
             .get(`/v1/fleets/${UUIDV4_1}`)
@@ -370,6 +405,11 @@ describe("/v1/fleets", () => {
 
     test("fleet buy-ships", async () => {
         await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 1000,
+                },
+            },
             fleets: [
                 {
                     id: UUIDV4_1,
@@ -398,11 +438,16 @@ describe("/v1/fleets", () => {
             .get(`/v1/users/me`)
             .set("Authorization", "Bearer longwelwind");
 
-        expect(resMe.body.credits).toEqual(1000000 - 2 * 100);
+        expect(resMe.body.credits).toEqual(1000 - 2 * 100);
     });
 
     test("fleet buy-ships over 100 ships", async () => {
         await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 100000,
+                },
+            },
             fleets: [
                 {
                     id: UUIDV4_1,

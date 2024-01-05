@@ -1,5 +1,5 @@
 import e from "express";
-import { Fleet, Resource, ShipType, System, User } from "./database";
+import { Fleet, Inventory, Resource, ShipType, System, User } from "./database";
 
 export function serializeFleet(fleet: Fleet) {
     return {
@@ -10,12 +10,7 @@ export function serializeFleet(fleet: Fleet) {
         },
         locationSystemId: fleet.locationSystemId,
         currentAction: serializeFleetAction(fleet),
-        cargo: Object.fromEntries(
-            fleet.inventory.items.map((item) => [
-                item.resourceId,
-                Number(item.quantity),
-            ]),
-        ),
+        cargo: serializeInventory(fleet.inventory),
         ships: Object.fromEntries(
             fleet.fleetCompositions.map((c) => [
                 c.shipTypeId,
@@ -23,6 +18,12 @@ export function serializeFleet(fleet: Fleet) {
             ]),
         ),
     };
+}
+
+export function serializeInventory(inventory: Inventory) {
+    return Object.fromEntries(
+        inventory.items.map((item) => [item.resourceId, Number(item.quantity)]),
+    );
 }
 
 function serializeFleetAction(fleet: Fleet) {
@@ -68,6 +69,12 @@ export function serializeSystem(
                   station: {
                       directSell: true,
                       buyShips: true,
+                      cargo:
+                          system.stationInventories.length > 0
+                              ? serializeInventory(
+                                    system.stationInventories[0].inventory,
+                                )
+                              : {},
                   },
               }
             : {}),

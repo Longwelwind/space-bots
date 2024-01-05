@@ -9,6 +9,7 @@ import {
     Resource,
     ShipType,
     ShipTypeBuildResources,
+    StationInventory,
     System,
     SystemLink,
     User,
@@ -30,6 +31,7 @@ import logger from "../utils/logger";
 import path from "path";
 import HttpError from "../utils/HttpError";
 import setupTransaction from "../utils/setupTransaction";
+import { setTimeout } from "timers/promises";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -301,125 +303,125 @@ export default function addFleetsRoutes(router: Router) {
         });
     });
 
-    router.post<
-        paths["/fleets/{fleetId}/build-ships"]["post"]["parameters"]["path"],
-        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][200]["content"]["application/json"]
-        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][400]["content"]["application/json"]
-        | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][403]["content"]["application/json"],
-        paths["/fleets/{fleetId}/build-ships"]["post"]["requestBody"]["content"]["application/json"]
-    >("/fleets/:fleetId/build-ships", async (req, res) => {
-        await setupTransaction(sequelize, async (transaction) => {
-            const fleet = await getOrNotFound<Fleet>(
-                Fleet,
-                req.params.fleetId,
-                res,
-                {
-                    transaction,
-                    lock: true,
-                },
-            );
+    // router.post<
+    //     paths["/fleets/{fleetId}/build-ships"]["post"]["parameters"]["path"],
+    //     | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][200]["content"]["application/json"]
+    //     | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][400]["content"]["application/json"]
+    //     | paths["/fleets/{fleetId}/build-ships"]["post"]["responses"][403]["content"]["application/json"],
+    //     paths["/fleets/{fleetId}/build-ships"]["post"]["requestBody"]["content"]["application/json"]
+    // >("/fleets/:fleetId/build-ships", async (req, res) => {
+    //     await setupTransaction(sequelize, async (transaction) => {
+    //         const fleet = await getOrNotFound<Fleet>(
+    //             Fleet,
+    //             req.params.fleetId,
+    //             res,
+    //             {
+    //                 transaction,
+    //                 lock: true,
+    //             },
+    //         );
 
-            // This cannot be queried while querying the fleet because this would
-            // create a lock on the System. It is thus fetched separately.
-            const systemOfFleet = await System.findByPk(
-                fleet.locationSystemId,
-                { transaction },
-            );
+    //         // This cannot be queried while querying the fleet because this would
+    //         // create a lock on the System. It is thus fetched separately.
+    //         const systemOfFleet = await System.findByPk(
+    //             fleet.locationSystemId,
+    //             { transaction },
+    //         );
 
-            // Check that they own this fleet
-            if (fleet.ownerUserId != res.locals.user.id) {
-                throw new HttpError(403, "not_owner");
-            }
+    //         // Check that they own this fleet
+    //         if (fleet.ownerUserId != res.locals.user.id) {
+    //             throw new HttpError(403, "not_owner");
+    //         }
 
-            // Check that this system has a station
-            if (!systemOfFleet.hasStation) {
-                throw new HttpError(400, "no_station");
-            }
+    //         // Check that this system has a station
+    //         if (!systemOfFleet.hasStation) {
+    //             throw new HttpError(400, "no_station");
+    //         }
 
-            const shipsToBuild = req.body["shipsToBuild"] as {
-                [shipTypeId: string]: number;
-            };
+    //         const shipsToBuild = req.body["shipsToBuild"] as {
+    //             [shipTypeId: string]: number;
+    //         };
 
-            // Check that received shipTypeIds are correct
-            const shipTypesEntries = await Promise.all(
-                Object.keys(shipsToBuild).map(async (shipTypeId) => {
-                    const shipType = await getOrNotFound<ShipType>(
-                        ShipType,
-                        shipTypeId,
-                        res,
-                        { transaction, include: ShipTypeBuildResources },
-                    );
+    //         // Check that received shipTypeIds are correct
+    //         const shipTypesEntries = await Promise.all(
+    //             Object.keys(shipsToBuild).map(async (shipTypeId) => {
+    //                 const shipType = await getOrNotFound<ShipType>(
+    //                     ShipType,
+    //                     shipTypeId,
+    //                     res,
+    //                     { transaction, include: ShipTypeBuildResources },
+    //                 );
 
-                    return [shipType.id, shipType] as [string, ShipType];
-                }),
-            );
+    //                 return [shipType.id, shipType] as [string, ShipType];
+    //             }),
+    //         );
 
-            const shipTypes = Object.fromEntries(shipTypesEntries);
+    //         const shipTypes = Object.fromEntries(shipTypesEntries);
 
-            // Check that all ships can be built
-            if (
-                Object.values(shipTypes).some(
-                    (shipType) => shipType.costToBuild.length == 0,
-                )
-            ) {
-                throw new HttpError(
-                    400,
-                    "not_buildable_ship_type",
-                    "Some of the ship types sent cannot be built using resources",
-                );
-            }
+    //         // Check that all ships can be built
+    //         if (
+    //             Object.values(shipTypes).some(
+    //                 (shipType) => shipType.costToBuild.length == 0,
+    //             )
+    //         ) {
+    //             throw new HttpError(
+    //                 400,
+    //                 "not_buildable_ship_type",
+    //                 "Some of the ship types sent cannot be built using resources",
+    //             );
+    //         }
 
-            // Compute total resource cost to build all those ships
-            const resourceCost = _.reduce(
-                _.flatMap(
-                    Object.values(shipTypes).map(
-                        (shipType) => shipType.costToBuild,
-                    ),
-                ),
-                (p, c) => {
-                    if (!(c.resourceId in p)) {
-                        p[c.resourceId] = 0;
-                    }
+    //         // Compute total resource cost to build all those ships
+    //         const resourceCost = _.reduce(
+    //             _.flatMap(
+    //                 Object.values(shipTypes).map(
+    //                     (shipType) => shipType.costToBuild,
+    //                 ),
+    //             ),
+    //             (p, c) => {
+    //                 if (!(c.resourceId in p)) {
+    //                     p[c.resourceId] = 0;
+    //                 }
 
-                    p[c.resourceId] += shipsToBuild[c.shipTypeId] * c.quantity;
+    //                 p[c.resourceId] += shipsToBuild[c.shipTypeId] * c.quantity;
 
-                    return p;
-                },
-                {},
-            );
+    //                 return p;
+    //             },
+    //             {},
+    //         );
 
-            const resourceCostAsNegative = _.mapValues(resourceCost, (v) => -v);
+    //         const resourceCostAsNegative = _.mapValues(resourceCost, (v) => -v);
 
-            const enoughResource = await changeResourcesOfInventories(
-                {
-                    [fleet.inventoryId]: resourceCostAsNegative,
-                },
-                transaction,
-            );
+    //         const enoughResource = await changeResourcesOfInventories(
+    //             {
+    //                 [fleet.inventoryId]: resourceCostAsNegative,
+    //             },
+    //             transaction,
+    //         );
 
-            if (!enoughResource) {
-                throw new HttpError(400, "not_enough_resources");
-            }
+    //         if (!enoughResource) {
+    //             throw new HttpError(400, "not_enough_resources");
+    //         }
 
-            // Add ships to fleet
-            await changeShipsOfFleets(
-                { [fleet.id]: shipsToBuild },
-                transaction,
-            );
+    //         // Add ships to fleet
+    //         await changeShipsOfFleets(
+    //             { [fleet.id]: shipsToBuild },
+    //             transaction,
+    //         );
 
-            // Check if fleets don't have too much ships
-            const totalShips = await FleetComposition.sum("quantity", {
-                where: { fleetId: fleet.id },
-                transaction,
-            });
+    //         // Check if fleets don't have too much ships
+    //         const totalShips = await FleetComposition.sum("quantity", {
+    //             where: { fleetId: fleet.id },
+    //             transaction,
+    //         });
 
-            if (totalShips > 100) {
-                throw new HttpError(400, "too_much_ships_in_fleet");
-            }
+    //         if (totalShips > 100) {
+    //             throw new HttpError(400, "too_much_ships_in_fleet");
+    //         }
 
-            res.json({ resourcesSpent: resourceCost });
-        });
-    });
+    //         res.json({ resourcesSpent: resourceCost });
+    //     });
+    // });
 
     router.post<
         paths["/fleets/{fleetId}/transfer"]["post"]["parameters"]["path"],
@@ -567,6 +569,103 @@ export default function addFleetsRoutes(router: Router) {
             }
 
             res.json({ ...(newFleet ? { newFleetId: targetFleet.id } : {}) });
+        });
+    });
+
+    router.post<
+        paths["/fleets/{fleetId}/transfer-to-station"]["post"]["parameters"]["path"],
+        | paths["/fleets/{fleetId}/transfer-to-station"]["post"]["responses"][200]["content"]["application/json"]
+        | paths["/fleets/{fleetId}/transfer-to-station"]["post"]["responses"][400]["content"]["application/json"]
+        | paths["/fleets/{fleetId}/transfer-to-station"]["post"]["responses"][403]["content"]["application/json"],
+        paths["/fleets/{fleetId}/transfer-to-station"]["post"]["requestBody"]["content"]["application/json"]
+    >("/fleets/:fleetId/transfer-to-station", async (req, res) => {
+        await setupTransaction(sequelize, async (transaction) => {
+            const fleet = await getOrNotFound<Fleet>(
+                Fleet,
+                req.params["fleetId"],
+                res,
+                {
+                    transaction,
+                    lock: true,
+                    include: [{ model: Inventory, required: true }],
+                },
+            );
+
+            // This cannot be queried while querying the fleet because this would
+            // create a lock on the System. It is thus fetched separately.
+            const systemOfFleet = await System.findByPk(
+                fleet.locationSystemId,
+                { transaction },
+            );
+
+            // Check that they own this fleet
+            if (fleet.ownerUserId != res.locals.user.id) {
+                throw new HttpError(403, "not_owner");
+            }
+
+            const resourcesFromFleetToStation =
+                req.body.resourcesFromFleetToStation || {};
+            const resourcesFromStationToFleet =
+                req.body.resourcesFromStationToFleet || {};
+
+            const resourcesChangeFleet = mergeByAdding(
+                resourcesFromStationToFleet,
+                oppositeOfValues(resourcesFromFleetToStation),
+            );
+            const resourcesChangeStation = mergeByAdding(
+                resourcesFromFleetToStation,
+                oppositeOfValues(resourcesFromStationToFleet),
+            );
+
+            // Check that this system has a station
+            if (!systemOfFleet.hasStation) {
+                throw new HttpError(
+                    400,
+                    "no_station",
+                    "The system this fleet is in does not have a station",
+                );
+            }
+
+            if (fleet.currentAction != "idling") {
+                // Both fleets must not be busy
+                throw new HttpError(400, "fleet_busy");
+            }
+
+            // Get, or create, the inventory of this fleet for this station
+            let stationInventory = await StationInventory.findOne({
+                where: {
+                    userId: res.locals.user.id,
+                    systemId: systemOfFleet.id,
+                },
+                transaction,
+                lock: true,
+            });
+
+            if (stationInventory == null) {
+                const inventory = await Inventory.create({ transaction });
+                stationInventory = await StationInventory.create(
+                    {
+                        userId: res.locals.user.id,
+                        systemId: systemOfFleet.id,
+                        inventoryId: inventory.id,
+                    },
+                    { transaction },
+                );
+            }
+
+            const enoughResources = await changeResourcesOfInventories(
+                {
+                    [fleet.inventoryId]: resourcesChangeFleet,
+                    [stationInventory.inventoryId]: resourcesChangeStation,
+                },
+                transaction,
+            );
+
+            if (!enoughResources) {
+                throw new HttpError(400, "not_enough_resources");
+            }
+
+            res.json({});
         });
     });
 

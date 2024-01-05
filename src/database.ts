@@ -17,15 +17,7 @@ import {
 import { Column, CreatedAt, PrimaryKey, Table } from "sequelize-typescript";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";
-import {
-    DATABASE_HOSTNAME,
-    DATABASE_USERNAME,
-    DATABASE_PASSWORD,
-    DATABASE_DATABASE,
-    DATABASE_PORT,
-    CACERT,
-    DATABASE_URL,
-} from "./config";
+import { DATABASE_URL } from "./config";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -114,6 +106,9 @@ export class System extends Model {
 
     @HasMany(() => SystemLink, "secondSystemId")
     secondSystemLinks: SystemLink[];
+
+    @HasMany(() => StationInventory)
+    stationInventories: StationInventory[];
 
     get systemLinks(): SystemLink[] {
         return this.firstSystemLinks.concat(this.secondSystemLinks);
@@ -360,11 +355,61 @@ export class MarketOrder extends Model {
     resource: Resource;
 
     @ForeignKey(() => Resource)
+    @PrimaryKey
     @Column
     declare resourceId: string;
 
-    @Column({ type: BIGINT })
-    quantity: number;
+    @Column({ allowNull: false, type: BIGINT })
+    quantity: string;
+
+    @PrimaryKey
+    @Column({ allowNull: false, type: BIGINT })
+    price: string;
+
+    // Can either be "sell" or "buy"
+    @PrimaryKey
+    @Column({ allowNull: false })
+    type: string;
+}
+
+@Table({ modelName: "MarketTransactions" })
+export class MarketTransaction extends Model {
+    @BelongsTo(() => System)
+    system: System;
+
+    @ForeignKey(() => System)
+    @Column
+    declare systemId: string;
+
+    @BelongsTo(() => User, "sellerUserId")
+    seller: User;
+
+    @ForeignKey(() => User)
+    @Column({ type: UUID })
+    declare sellerUserId: string;
+
+    @BelongsTo(() => User, "buyerUserId")
+    buyer: User;
+
+    @ForeignKey(() => User)
+    @Column({ type: UUID })
+    declare buyerUserId: string;
+
+    @BelongsTo(() => Resource)
+    resource: Resource;
+
+    @ForeignKey(() => Resource)
+    @Column
+    declare resourceId: string;
+
+    @Column({ allowNull: false, type: BIGINT })
+    quantity: string;
+
+    @Column({ allowNull: false, type: BIGINT })
+    price: string;
+
+    @Column
+    time: Date;
 }
 
 @Table({
@@ -416,6 +461,7 @@ sequelize.addModels([
     FleetComposition,
     ShipTypeBuildResources,
     MarketOrder,
+    MarketTransaction,
 ]);
 
 export async function sync(options = {}) {

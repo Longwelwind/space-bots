@@ -4,15 +4,18 @@ import {
     FleetComposition,
     Inventory,
     InventoryItem,
+    MarketOrder,
     Resource,
     ShipType,
     ShipTypeBuildResources,
+    StationInventory,
     System,
     SystemLink,
     User,
     checkProductionDatabase,
 } from "../database";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
+import { stat } from "fs";
 
 interface TestData {
     fleets?: {
@@ -23,13 +26,44 @@ interface TestData {
         cargo?: { [resourceId: string]: number };
         locationSystemId: string;
     }[];
+    users?: {
+        [userId: string]: {
+            credits?: number;
+        };
+    };
+    systems?: {
+        [systemId: string]: {
+            stationInventories?: {
+                [userId: string]: {
+                    inventoryId: string;
+                    content: { [resourceId: string]: number };
+                };
+            };
+            market?: {
+                [userId: string]: {
+                    sellOrders?: {
+                        [resourceId: string]: {
+                            price: number;
+                            quantity: number;
+                        }[];
+                    };
+                    buyOrders?: {
+                        [resourceId: string]: {
+                            price: number;
+                            quantity: number;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
 }
 
 export default async function seedTestData(testData: TestData) {
     checkProductionDatabase();
 
     const options = {
-        logging: false,
+        //logging: false,
     };
 
     await Resource.bulkCreate(
@@ -125,41 +159,138 @@ export default async function seedTestData(testData: TestData) {
         { shipTypeId: "fighter", resourceId: "zinc", quantity: 15 },
     ]);
 
-    await User.create(
-        {
-            id: UUIDV4_1,
-            name: "Longwelwind",
-            token: "longwelwind",
-            credits: 1000000,
-        },
+    await User.bulkCreate(
+        [
+            {
+                id: UUIDV4_1,
+                name: "Longwelwind",
+                token: "longwelwind",
+                credits: testData?.users?.[UUIDV4_1]?.credits || 0,
+            },
+            {
+                id: UUIDV4_2,
+                name: "User2",
+                token: "user2",
+                credits: testData?.users?.[UUIDV4_2]?.credits || 0,
+            },
+            {
+                id: UUIDV4_3,
+                name: "User3",
+                token: "user3",
+                credits: testData?.users?.[UUIDV4_3]?.credits || 0,
+            },
+        ],
         options,
     );
 
     await Inventory.bulkCreate(
-        testData.fleets
-            ? testData.fleets.map((fleetTestData) => ({
-                  id: fleetTestData.inventoryId,
-              }))
-            : [],
+        [
+            ...(testData.fleets
+                ? testData.fleets.map((fleetTestData) => ({
+                      id: fleetTestData.inventoryId,
+                  }))
+                : []),
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemTestData]) =>
+                              systemTestData.stationInventories
+                                  ? Object.entries(
+                                        systemTestData.stationInventories,
+                                    ).map(
+                                        ([
+                                            _userId,
+                                            stationInventoryTestData,
+                                        ]) => ({
+                                            id: stationInventoryTestData.inventoryId,
+                                        }),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
         options,
     );
 
     await InventoryItem.bulkCreate(
-        testData.fleets
-            ? _.flatMap(
-                  testData.fleets.map((fleetTestData) =>
-                      fleetTestData.cargo
-                          ? Object.entries(fleetTestData.cargo).map(
-                                ([resourceId, quantity]) => ({
-                                    inventoryId: fleetTestData.inventoryId,
-                                    resourceId,
-                                    quantity,
-                                }),
-                            )
-                          : [],
-                  ),
-              )
-            : [],
+        [
+            ...(testData.fleets
+                ? _.flatMap(
+                      testData.fleets.map((fleetTestData) =>
+                          fleetTestData.cargo
+                              ? Object.entries(fleetTestData.cargo).map(
+                                    ([resourceId, quantity]) => ({
+                                        inventoryId: fleetTestData.inventoryId,
+                                        resourceId,
+                                        quantity,
+                                    }),
+                                )
+                              : [],
+                      ),
+                  )
+                : []),
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemTestData]) =>
+                              systemTestData.stationInventories
+                                  ? _.flatMap(
+                                        Object.entries(
+                                            systemTestData.stationInventories,
+                                        ).map(
+                                            ([
+                                                userId,
+                                                stationInventoryTestData,
+                                            ]) =>
+                                                Object.entries(
+                                                    stationInventoryTestData.content,
+                                                ).map(
+                                                    ([
+                                                        resourceId,
+                                                        quantity,
+                                                    ]) => ({
+                                                        inventoryId:
+                                                            stationInventoryTestData.inventoryId,
+                                                        resourceId,
+                                                        quantity,
+                                                    }),
+                                                ),
+                                        ),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
+        options,
+    );
+
+    await StationInventory.bulkCreate(
+        [
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemTestData]) =>
+                              systemTestData.stationInventories
+                                  ? Object.entries(
+                                        systemTestData.stationInventories,
+                                    ).map(
+                                        ([
+                                            userId,
+                                            stationInventoryTestData,
+                                        ]) => ({
+                                            userId,
+                                            inventoryId:
+                                                stationInventoryTestData.inventoryId,
+                                            systemId,
+                                        }),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
         options,
     );
 
@@ -191,6 +322,88 @@ export default async function seedTestData(testData: TestData) {
                   ),
               )
             : [],
+        options,
+    );
+
+    await MarketOrder.bulkCreate(
+        [
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemTestData]) =>
+                              systemTestData.market
+                                  ? _.flatMap(
+                                        Object.entries(
+                                            systemTestData.market,
+                                        ).map(([userId, marketTestData]) =>
+                                            _.flatMap(
+                                                marketTestData.buyOrders
+                                                    ? Object.entries(
+                                                          marketTestData.buyOrders,
+                                                      ).map(
+                                                          ([
+                                                              resourceId,
+                                                              orders,
+                                                          ]) =>
+                                                              orders.map(
+                                                                  (order) => ({
+                                                                      price: order.price,
+                                                                      quantity:
+                                                                          order.quantity,
+                                                                      userId,
+                                                                      systemId,
+                                                                      type: "buy",
+                                                                      resourceId,
+                                                                  }),
+                                                              ),
+                                                      )
+                                                    : [],
+                                            ),
+                                        ),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemTestData]) =>
+                              systemTestData.market
+                                  ? _.flatMap(
+                                        Object.entries(
+                                            systemTestData.market,
+                                        ).map(([userId, marketTestData]) =>
+                                            _.flatMap(
+                                                marketTestData.sellOrders
+                                                    ? Object.entries(
+                                                          marketTestData.sellOrders,
+                                                      ).map(
+                                                          ([
+                                                              resourceId,
+                                                              orders,
+                                                          ]) =>
+                                                              orders.map(
+                                                                  (order) => ({
+                                                                      price: order.price,
+                                                                      quantity:
+                                                                          order.quantity,
+                                                                      userId,
+                                                                      systemId,
+                                                                      type: "sell",
+                                                                      resourceId,
+                                                                  }),
+                                                              ),
+                                                      )
+                                                    : [],
+                                            ),
+                                        ),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
         options,
     );
 }

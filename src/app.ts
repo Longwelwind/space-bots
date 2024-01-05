@@ -6,17 +6,11 @@ import {
     InventoryItem,
     ShipType,
     System,
-    SystemLink,
     User,
     sequelize,
 } from "./database";
-import getOrNotFound from "./utils/getOrNotFound";
 import { v4 } from "uuid";
-import {
-    serializeSystem,
-    serializeUser,
-    serializeUserForWebsite,
-} from "./serializers";
+import { serializeUser, serializeUserForWebsite } from "./serializers";
 import { Transaction } from "sequelize";
 import asyncSequentialMap from "./utils/asyncSequentialMap";
 import admin from "firebase-admin";
@@ -38,6 +32,7 @@ import { NODE_ENV } from "./config";
 import authMiddleware from "./utils/authMiddleware";
 import _ from "lodash";
 import setupTransaction from "./utils/setupTransaction";
+import addSystemsRoutes from "./app/systems";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -133,6 +128,7 @@ if (NODE_ENV == "production") {
 
 addFleetsRoutes(gameRouter);
 addShipTypesRoutes(gameRouter);
+addSystemsRoutes(gameRouter);
 addResourcesRoutes(gameRouter);
 
 gameRouter.post<
@@ -156,26 +152,6 @@ gameRouter.post<
 
         res.json({});
     });
-});
-
-gameRouter.get<
-    paths["/systems/{systemId}"]["get"]["parameters"]["path"],
-    paths["/systems/{systemId}"]["get"]["responses"][200]["content"]["application/json"],
-    null
->("/systems/:systemId", async (req, res) => {
-    const system = await getOrNotFound<System>(
-        System,
-        req.params["systemId"],
-        res,
-        {
-            include: [
-                { model: SystemLink, as: "firstSystemLinks" },
-                { model: SystemLink, as: "secondSystemLinks" },
-            ],
-        },
-    );
-
-    res.json(serializeSystem(system, res.locals.user.id, true));
 });
 
 gameRouter.get<
