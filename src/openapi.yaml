@@ -552,6 +552,8 @@ paths:
         post:
             summary: Transfer ships and cargo to an other fleet
             description: |
+                This route can be used to create new fleet by calling it without specifying `targetFleetId`.
+                
                 ⚠️ Transfering all the ships out of a fleet will destroy it, losing any cargo this fleet had in the process
             tags:
                 - Fleets
