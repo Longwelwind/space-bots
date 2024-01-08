@@ -764,6 +764,16 @@ paths:
                                     
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System or resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
     /systems/{systemId}/market/resources/{resourceId}/sell-orders:
