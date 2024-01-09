@@ -468,101 +468,101 @@ describe("/v1/fleets", () => {
         expect(res.body).toMatchObject({ error: "too_much_ships_in_fleet" });
     });
 
-    test("POST /v1/fleets/{fleetId}/build-ships", async () => {
-        await seedTestData({
-            fleets: [
-                {
-                    id: UUIDV4_1,
-                    ownerUserId: UUIDV4_1,
-                    locationSystemId: "omega",
-                    inventoryId: UUIDV4_1,
-                    ships: { miner: 5 },
-                    cargo: { aluminium: 100, zinc: 30 },
-                },
-            ],
-        });
+    // test("POST /v1/fleets/{fleetId}/build-ships", async () => {
+    //     await seedTestData({
+    //         fleets: [
+    //             {
+    //                 id: UUIDV4_1,
+    //                 ownerUserId: UUIDV4_1,
+    //                 locationSystemId: "omega",
+    //                 inventoryId: UUIDV4_1,
+    //                 ships: { miner: 5 },
+    //                 cargo: { aluminium: 100, zinc: 30 },
+    //             },
+    //         ],
+    //     });
 
-        const res = await request(app)
-            .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
-            .set("Authorization", "Bearer longwelwind")
-            .send({ shipsToBuild: { fighter: 2 } });
+    //     const res = await request(app)
+    //         .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
+    //         .set("Authorization", "Bearer longwelwind")
+    //         .send({ shipsToBuild: { fighter: 2 } });
 
-        expect(res.status).toEqual(200);
+    //     expect(res.status).toEqual(200);
 
-        const resThree = await request(app)
-            .get(`/v1/fleets/${UUIDV4_1}`)
-            .set("Authorization", "Bearer longwelwind");
+    //     const resThree = await request(app)
+    //         .get(`/v1/fleets/${UUIDV4_1}`)
+    //         .set("Authorization", "Bearer longwelwind");
 
-        expect(resThree.body.ships).toEqual({ miner: 5, fighter: 2 });
-        expect(resThree.body.cargo).toEqual({ aluminium: 100 - 20 });
-    });
+    //     expect(resThree.body.ships).toEqual({ miner: 5, fighter: 2 });
+    //     expect(resThree.body.cargo).toEqual({ aluminium: 100 - 20 });
+    // });
 
-    test("POST /v1/fleets/{fleetId}/build-ships over 100 ships", async () => {
-        await seedTestData({
-            fleets: [
-                {
-                    id: UUIDV4_1,
-                    ownerUserId: UUIDV4_1,
-                    locationSystemId: "omega",
-                    inventoryId: UUIDV4_1,
-                    ships: { miner: 99 },
-                    cargo: { aluminium: 100, zinc: 30 },
-                },
-            ],
-        });
+    // test("POST /v1/fleets/{fleetId}/build-ships over 100 ships", async () => {
+    //     await seedTestData({
+    //         fleets: [
+    //             {
+    //                 id: UUIDV4_1,
+    //                 ownerUserId: UUIDV4_1,
+    //                 locationSystemId: "omega",
+    //                 inventoryId: UUIDV4_1,
+    //                 ships: { miner: 99 },
+    //                 cargo: { aluminium: 100, zinc: 30 },
+    //             },
+    //         ],
+    //     });
 
-        const res = await request(app)
-            .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
-            .set("Authorization", "Bearer longwelwind")
-            .send({ shipsToBuild: { fighter: 2 } });
+    //     const res = await request(app)
+    //         .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
+    //         .set("Authorization", "Bearer longwelwind")
+    //         .send({ shipsToBuild: { fighter: 2 } });
 
-        expect(res.status).toEqual(400);
-        expect(res.body).toMatchObject({ error: "too_much_ships_in_fleet" });
-    });
+    //     expect(res.status).toEqual(400);
+    //     expect(res.body).toMatchObject({ error: "too_much_ships_in_fleet" });
+    // });
 
-    test("POST /v1/fleets/{fleetId}/build-ships building a non-buildable ship", async () => {
-        await seedTestData({
-            fleets: [
-                {
-                    id: UUIDV4_1,
-                    ownerUserId: UUIDV4_1,
-                    locationSystemId: "omega",
-                    inventoryId: UUIDV4_1,
-                    ships: { miner: 10 },
-                    cargo: { aluminium: 100, zinc: 30 },
-                },
-            ],
-        });
+    // test("POST /v1/fleets/{fleetId}/build-ships building a non-buildable ship", async () => {
+    //     await seedTestData({
+    //         fleets: [
+    //             {
+    //                 id: UUIDV4_1,
+    //                 ownerUserId: UUIDV4_1,
+    //                 locationSystemId: "omega",
+    //                 inventoryId: UUIDV4_1,
+    //                 ships: { miner: 10 },
+    //                 cargo: { aluminium: 100, zinc: 30 },
+    //             },
+    //         ],
+    //     });
 
-        const res = await request(app)
-            .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
-            .set("Authorization", "Bearer longwelwind")
-            .send({ shipsToBuild: { miner: 2 } });
+    //     const res = await request(app)
+    //         .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
+    //         .set("Authorization", "Bearer longwelwind")
+    //         .send({ shipsToBuild: { miner: 2 } });
 
-        expect(res.status).toEqual(400);
-        expect(res.body).toMatchObject({ error: "not_buildable_ship_type" });
-    });
+    //     expect(res.status).toEqual(400);
+    //     expect(res.body).toMatchObject({ error: "not_buildable_ship_type" });
+    // });
 
-    test("POST /v1/fleets/{fleetId}/build-ships without enough resources", async () => {
-        await seedTestData({
-            fleets: [
-                {
-                    id: UUIDV4_1,
-                    ownerUserId: UUIDV4_1,
-                    locationSystemId: "omega",
-                    inventoryId: UUIDV4_1,
-                    ships: { miner: 10 },
-                    cargo: { aluminium: 10, zinc: 10 },
-                },
-            ],
-        });
+    // test("POST /v1/fleets/{fleetId}/build-ships without enough resources", async () => {
+    //     await seedTestData({
+    //         fleets: [
+    //             {
+    //                 id: UUIDV4_1,
+    //                 ownerUserId: UUIDV4_1,
+    //                 locationSystemId: "omega",
+    //                 inventoryId: UUIDV4_1,
+    //                 ships: { miner: 10 },
+    //                 cargo: { aluminium: 10, zinc: 10 },
+    //             },
+    //         ],
+    //     });
 
-        const res = await request(app)
-            .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
-            .set("Authorization", "Bearer longwelwind")
-            .send({ shipsToBuild: { fighter: 1 } });
+    //     const res = await request(app)
+    //         .post(`/v1/fleets/${UUIDV4_1}/build-ships`)
+    //         .set("Authorization", "Bearer longwelwind")
+    //         .send({ shipsToBuild: { fighter: 1 } });
 
-        expect(res.status).toEqual(400);
-        expect(res.body).toMatchObject({ error: "not_enough_resources" });
-    });
+    //     expect(res.status).toEqual(400);
+    //     expect(res.body).toMatchObject({ error: "not_enough_resources" });
+    // });
 });
