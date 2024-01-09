@@ -277,7 +277,7 @@ export async function marketGetOrdersRoute(
             type,
         },
         // @ts-expect-error Why does TS throw an error here???
-        order: [["price", ...(type == "buy" ? ["DESC"] : [""])]],
+        order: [["price", ...(type == "buy" ? ["DESC"] : [])]],
     });
 
     res.send(
