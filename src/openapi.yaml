@@ -59,6 +59,10 @@ paths:
             responses:
                 "200":
                     description: TODO
+                    content:
+                        application/json:
+                            schema:
+                                type: object
                 "400":
                     description: Error
                     content:

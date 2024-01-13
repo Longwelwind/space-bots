@@ -22,8 +22,6 @@ import {
     marketInstantRoute,
     marketOrderRoute,
 } from "../utils/marketRoutesHelpers";
-import HttpError from "../utils/HttpError";
-import { Op } from "sequelize";
 import paginatedListRoute from "../utils/paginatedListRoute";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));

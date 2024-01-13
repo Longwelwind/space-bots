@@ -33,6 +33,7 @@ import authMiddleware from "./utils/authMiddleware";
 import _ from "lodash";
 import setupTransaction from "./utils/setupTransaction";
 import addSystemsRoutes from "./app/systems";
+import addUsersRoutes from "./app/users";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -127,40 +128,10 @@ if (NODE_ENV == "production") {
 }
 
 addFleetsRoutes(gameRouter);
+addUsersRoutes(gameRouter);
 addShipTypesRoutes(gameRouter);
 addSystemsRoutes(gameRouter);
 addResourcesRoutes(gameRouter);
-
-gameRouter.post<
-    null,
-    | paths["/users/register"]["post"]["responses"][200]["content"]["application/json"]
-    | paths["/users/register"]["post"]["responses"][400]["content"]["application/json"],
-    paths["/users/register"]["post"]["requestBody"]["content"]["application/json"]
->("/users/register", async (req, res) => {
-    await setupTransaction(sequelize, async (transaction) => {
-        const name = req.body["name"];
-
-        // Check if name is already taken
-        if ((await User.count({ where: { name } })) > 0) {
-            throw new HttpError(400, "name_taken", "");
-        }
-
-        await res.locals.user.update(
-            { name, registered: true },
-            { transaction },
-        );
-
-        res.json({});
-    });
-});
-
-gameRouter.get<
-    null,
-    paths["/users/me"]["get"]["responses"][200]["content"]["application/json"],
-    null
->("/users/me", async (req, res) => {
-    res.json(serializeUser(res.locals.user));
-});
 
 export async function createFleet(
     ownerUserId: string,
