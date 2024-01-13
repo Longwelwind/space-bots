@@ -63,7 +63,7 @@ export default async function seedTestData(testData: TestData) {
     checkProductionDatabase();
 
     const options = {
-        //logging: false,
+        logging: false,
     };
 
     await Resource.bulkCreate(

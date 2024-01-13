@@ -315,7 +315,12 @@ paths:
                                 properties:
                                     error:
                                         type: string
-                                        enum: ["not_enough_credits", "no_station", "too_much_ships_in_fleet"]
+                                        enum:
+                                            [
+                                                "not_enough_credits",
+                                                "no_station",
+                                                "too_much_ships_in_fleet",
+                                            ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "403":
@@ -353,9 +358,76 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/Fleet"
+                                    allOf:
+                                        - $ref: "#/components/schemas/Fleet"
+                                        - $ref: "#/components/schemas/Cargo"
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /systems/{systemId}/fleets:
+        get:
+            summary: Return the fleets in the system
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+                - in: query
+                  name: count
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 20
+                      maximum: 50
+                  description: The number of items to return
+                - in: query
+                  name: pageNext
+                  schema:
+                      type: string
+                  description: A cursor to fetch the next items
+                - in: query
+                  name: pagePrevious
+                  schema:
+                      type: string
+                  description: A cursor to fetch the previous items
+            tags:
+                - Fleets
+            responses:
+                "200":
+                    description: Items successfuly fetched
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            allOf:
+                                                - $ref: "#/components/schemas/Fleet"
+                                    pagination:
+                                        type: object
+                                        required:
+                                            - total
+                                        properties:
+                                            total:
+                                                type: number
+                                                minimum: 0
+                                            pageNext:
+                                                type: string
+                                            pagePrevious:
+                                                type: string
+
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
     /fleets/{fleetId}:
@@ -371,7 +443,9 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Fleet"
+                                allOf:
+                                    - $ref: "#/components/schemas/Fleet"
+                                    - $ref: "#/components/schemas/Cargo"
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "404":
@@ -553,7 +627,7 @@ paths:
             summary: Transfer ships and cargo to an other fleet
             description: |
                 This route can be used to create new fleet by calling it without specifying `targetFleetId`.
-                
+
                 ⚠️ Transfering all the ships out of a fleet will destroy it, losing any cargo this fleet had in the process
             tags:
                 - Fleets
@@ -682,7 +756,7 @@ paths:
                                             [
                                                 "fleet_busy",
                                                 "not_enough_resources",
-                                                "no_station"
+                                                "no_station",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
@@ -763,7 +837,6 @@ paths:
                                                     type: string
                                                     format: date-time
 
-                                    
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "404":
@@ -783,7 +856,7 @@ paths:
             summary: Place an order to sell a quantity of ressources at a certain price
             description: |
                 Place, or update, your sell order for this `ressource` at this `price` in this `system`:
-                
+
                 * If you have no sell order or if your current sell order is lower than `quantity`, then this call
                 will update your sell order and remove the units of ressources from your station inventory not already placed in the sell order.
                 If there are buy orders for a price equal or lower than `price`, then those
@@ -945,7 +1018,7 @@ paths:
             summary: Place an order to buy a quantity of ressources at a certain price
             description: |
                 Place, or update, your buy order for this `ressource` at this `price` in this `system`:
-                
+
                 * If you have no buy order or if your current buy order is lower than `quantity`, then this call
                 will update your buy order and remove credits not already engaged in the buy order.
                 If there are sell orders for a price equal or higher than `price`, then those
@@ -1283,7 +1356,6 @@ components:
             required:
                 - id
                 - owner
-                - cargo
                 - ships
             properties:
                 id:
@@ -1332,9 +1404,12 @@ components:
                                   type: string
                               travelingToSystemId:
                                   type: string
-                cargo:
-                    type: object
-                    example: { "aluminium": 20 }
                 ships:
                     type: object
                     example: { "miner": 2 }
+        Cargo:
+            type: object
+            properties:
+                cargo:
+                    type: object
+                    example: { "aluminium": 20 }

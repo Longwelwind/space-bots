@@ -2,6 +2,8 @@ import path from "path";
 import logger from "../utils/logger";
 import { Router } from "express";
 import {
+    Fleet,
+    FleetComposition,
     Inventory,
     InventoryItem,
     MarketOrder,
@@ -14,12 +16,15 @@ import {
 } from "../database";
 import getOrNotFound from "../utils/getOrNotFound";
 import { paths } from "../schema";
-import { serializeSystem } from "../serializers";
+import { serializeFleet, serializeSystem } from "../serializers";
 import {
-    marketGetOrdersRoute,
+    marketGetOrdersRoute as marketGetMyOrdersRoute,
     marketInstantRoute,
     marketOrderRoute,
 } from "../utils/marketRoutesHelpers";
+import HttpError from "../utils/HttpError";
+import { Op } from "sequelize";
+import paginatedListRoute from "../utils/paginatedListRoute";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -130,6 +135,30 @@ export default function addSystemsRoutes(router: Router) {
         });
     });
 
+    router.get<
+        paths["/systems/{systemId}/fleets"]["get"]["parameters"]["path"],
+        | paths["/systems/{systemId}/fleets"]["get"]["responses"][200]["content"]["application/json"]
+        | paths["/systems/{systemId}/fleets"]["get"]["responses"][404]["content"]["application/json"],
+        null,
+        paths["/systems/{systemId}/fleets"]["get"]["parameters"]["query"]
+    >("/systems/:systemId/fleets", async (req, res) => {
+        const system = await getOrNotFound<System>(
+            System,
+            req.params["systemId"],
+            res,
+        );
+
+        await paginatedListRoute(
+            req,
+            res,
+            Fleet,
+            ["id"],
+            (fleet) => serializeFleet(fleet, false),
+            { locationSystemId: system.id },
+            { model: FleetComposition },
+        );
+    });
+
     router.post<
         paths["/systems/{systemId}/market/resources/{resourceId}/instant-sell"]["post"]["parameters"]["path"],
         | paths["/systems/{systemId}/market/resources/{resourceId}/instant-sell"]["post"]["responses"][200]["content"]["application/json"]
@@ -190,7 +219,7 @@ export default function addSystemsRoutes(router: Router) {
     >(
         "/systems/:systemId/market/resources/:resourceId/sell-orders/my",
         async (req, res) => {
-            await marketGetOrdersRoute(req, res, "sell");
+            await marketGetMyOrdersRoute(req, res, "sell");
         },
     );
 
@@ -200,7 +229,7 @@ export default function addSystemsRoutes(router: Router) {
     >(
         "/systems/:systemId/market/resources/:resourceId/buy-orders/my",
         async (req, res) => {
-            await marketGetOrdersRoute(req, res, "buy");
+            await marketGetMyOrdersRoute(req, res, "buy");
         },
     );
 }

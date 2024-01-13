@@ -1,7 +1,7 @@
 import e from "express";
 import { Fleet, Inventory, Resource, ShipType, System, User } from "./database";
 
-export function serializeFleet(fleet: Fleet) {
+export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
         id: fleet.id,
         owner: {
@@ -10,13 +10,17 @@ export function serializeFleet(fleet: Fleet) {
         },
         locationSystemId: fleet.locationSystemId,
         currentAction: serializeFleetAction(fleet),
-        cargo: serializeInventory(fleet.inventory),
         ships: Object.fromEntries(
             fleet.fleetCompositions.map((c) => [
                 c.shipTypeId,
                 Number(c.quantity),
             ]),
         ),
+        ...(showCargo
+            ? {
+                  cargo: serializeInventory(fleet.inventory),
+              }
+            : {}),
     };
 }
 

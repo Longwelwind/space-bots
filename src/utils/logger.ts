@@ -25,7 +25,7 @@ export function loggerMiddleware(req, res, next) {
 }
 
 const rootLogger = createLogger({
-    level: NODE_ENV == "development" ? "debug" : "info",
+    level: NODE_ENV == "development" || NODE_ENV == "test" ? "debug" : "info",
     format: format.combine(
         format.timestamp(),
         NODE_ENV != "production" ? format.colorize() : format.label(),
