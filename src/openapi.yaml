@@ -419,7 +419,16 @@ paths:
                                                 type: string
                                             pagePrevious:
                                                 type: string
-
+                "400":
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["no_fleet_in_system"]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "404":

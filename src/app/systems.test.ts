@@ -101,6 +101,34 @@ describe("/v1/systems", () => {
         ]);
     });
 
+    test("GET /v1/systems/{systemId}/fleets without a fleet in the system", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_2,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 1 },
+                },
+                {
+                    id: UUIDV4_2,
+                    ownerUserId: UUIDV4_2,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_2,
+                    ships: { miner: 1, fighter: 2 },
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/omega/fleets")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toEqual("no_fleet_in_system");
+    });
+
     test("GET /v1/systems/{systemId}/fleets with a specified count", async () => {
         await seedTestData({
             fleets: [

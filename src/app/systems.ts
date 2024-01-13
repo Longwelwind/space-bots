@@ -23,6 +23,7 @@ import {
     marketOrderRoute,
 } from "../utils/marketRoutesHelpers";
 import paginatedListRoute from "../utils/paginatedListRoute";
+import HttpError from "../utils/HttpError";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -145,6 +146,19 @@ export default function addSystemsRoutes(router: Router) {
             req.params["systemId"],
             res,
         );
+
+        // The user needs at least one fleet in the system
+        // to see the fleets in the system
+        const userFleet = await Fleet.findOne({
+            where: { ownerUserId: res.locals.user.id },
+        });
+        if (userFleet == null) {
+            throw new HttpError(
+                400,
+                "no_fleet_in_system",
+                "You need to have a fleet in the system to see the other fleets in it",
+            );
+        }
 
         await paginatedListRoute(
             req,
