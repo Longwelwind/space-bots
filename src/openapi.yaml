@@ -393,7 +393,7 @@ paths:
                       type: string
                   description: A cursor to fetch the previous items
             tags:
-                - Fleets
+                - Systems
             responses:
                 "200":
                     description: Items successfuly fetched
