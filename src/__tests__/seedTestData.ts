@@ -154,10 +154,13 @@ export default async function seedTestData(testData: TestData) {
         options,
     );
 
-    await ShipTypeBuildResources.bulkCreate([
-        { shipTypeId: "fighter", resourceId: "aluminium", quantity: 10 },
-        { shipTypeId: "fighter", resourceId: "zinc", quantity: 15 },
-    ]);
+    await ShipTypeBuildResources.bulkCreate(
+        [
+            { shipTypeId: "fighter", resourceId: "aluminium", quantity: 10 },
+            { shipTypeId: "fighter", resourceId: "zinc", quantity: 15 },
+        ],
+        options,
+    );
 
     await User.bulkCreate(
         [
