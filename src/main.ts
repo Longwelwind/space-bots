@@ -20,7 +20,9 @@ const server = app.listen(port, () => {
         LOGGER.info("SIGTERM received");
         LOGGER.info("unscheduling all tasks");
         unscheduleAllDelayedTasks();
-        server.close();
+        server.close(() => {
+            process.exit();
+        });
     });
 });
 
