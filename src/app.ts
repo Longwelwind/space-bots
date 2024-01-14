@@ -114,7 +114,7 @@ if (NODE_ENV == "production") {
     gameRouter.use(
         rateLimit({
             windowMs: 1 * 1000, // 1 second
-            limit: 5,
+            limit: 10,
             standardHeaders: "draft-7",
             legacyHeaders: false,
             keyGenerator: (req, res) => res.locals.user.id,
