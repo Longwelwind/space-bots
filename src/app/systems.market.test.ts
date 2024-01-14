@@ -166,6 +166,22 @@ describe("/v1/systems/{systemId}/market", () => {
         });
     });
 
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/buy-orders without any buy orders", async () => {
+        await seedTestData({});
+
+        const res = await request(app)
+            .get("/v1/systems/omega/market/resources/aluminium/buy-orders")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [],
+            pagination: {
+                total: 0,
+            },
+        });
+    });
+
     test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders pass", async () => {
         await seedTestData({
             systems: {

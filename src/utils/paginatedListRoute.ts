@@ -109,17 +109,21 @@ export default async function paginatedListRoute<E extends Model>(
             : {}),
     });
 
-    // To keep `rows`in
+    // To keep `rows` in
     if (!isGoingForward) {
         rows.reverse();
     }
 
-    const potentialPageNext = sortingKeys
-        .map(({ colName }) => rows[rows.length - 1][colName])
-        .join(",");
-    const potentialPagePrevious = sortingKeys
-        .map(({ colName }) => rows[0][colName])
-        .join(",");
+    const potentialPageNext =
+        rows.length > 0
+            ? sortingKeys
+                  .map(({ colName }) => rows[rows.length - 1][colName])
+                  .join(",")
+            : null;
+    const potentialPagePrevious =
+        rows.length > 0
+            ? sortingKeys.map(({ colName }) => rows[0][colName]).join(",")
+            : 0;
 
     res.send({
         items: rows.map((item) => serializer(item)),
