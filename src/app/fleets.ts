@@ -15,14 +15,11 @@ import {
     User,
     sequelize,
 } from "../database";
-import {
-    SPEED,
-    changeResourcesOfInventories,
-    changeShipsOfFleets,
-    createFleet,
-    scheduleFleetArrival,
-    scheduleMiningFinish,
-} from "../app";
+import { SPEED, createFleet } from "../app";
+import changeShipsOfFleets from "../utils/changeShipsOfFleets";
+import scheduleFleetArrival from "../scheduler/scheduleFleetArrival";
+import scheduleMiningFinish from "../scheduler/scheduleMiningFinish";
+import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import { serializeFleet } from "../serializers";
 import oppositeOfValues from "../utils/oppositeOfValues";
 import mergeByAdding from "../utils/mergeByAdding";

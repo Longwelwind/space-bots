@@ -1,4 +1,6 @@
-import app, { launchDelayedTasks, unscheduleAllDelayedTasks } from "./app";
+import app from "./app";
+import { launchDelayedTasks } from "./scheduler/delayedTasks";
+import { unscheduleAllDelayedTasks } from "./scheduler/delayedTasks";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";
 

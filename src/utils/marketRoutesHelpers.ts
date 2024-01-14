@@ -12,7 +12,7 @@ import {
 } from "../database";
 import HttpError from "./HttpError";
 import acquireMarketLock from "./acquireMarketLock";
-import { changeResourcesOfInventories } from "../app";
+import { changeResourcesOfInventories } from "./changeResourcesOfInventories";
 import setupTransaction from "./setupTransaction";
 import { Op, Transaction } from "sequelize";
 import paginatedListRoute from "./paginatedListRoute";
