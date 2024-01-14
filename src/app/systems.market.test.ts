@@ -107,6 +107,464 @@ describe("/v1/systems/{systemId}/market", () => {
         ]);
     });
 
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/buy-orders pass", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [{ price: 10, quantity: 4 }],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/omega/market/resources/aluminium/buy-orders")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 9, quantity: 4 },
+                { price: 8, quantity: 4 },
+            ],
+            pagination: {
+                total: 2,
+            },
+        });
+    });
+
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders pass", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                    { price: 15, quantity: 10 },
+                                    { price: 17, quantity: 4 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 4 },
+                                    { price: 13, quantity: 1 },
+                                    { price: 20, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                        [UUIDV4_3]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 2 },
+                                    { price: 13, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/omega/market/resources/aluminium/sell-orders")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 10, quantity: 9 },
+                { price: 11, quantity: 2 },
+                { price: 13, quantity: 5 },
+                { price: 15, quantity: 10 },
+                { price: 17, quantity: 4 },
+                { price: 20, quantity: 4 },
+            ],
+            pagination: {
+                total: 6,
+            },
+        });
+    });
+
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders with a next page", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                    { price: 15, quantity: 10 },
+                                    { price: 17, quantity: 4 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 4 },
+                                    { price: 13, quantity: 1 },
+                                    { price: 20, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                        [UUIDV4_3]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 2 },
+                                    { price: 13, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get(
+                "/v1/systems/omega/market/resources/aluminium/sell-orders?count=2",
+            )
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 10, quantity: 9 },
+                { price: 11, quantity: 2 },
+            ],
+            pagination: {
+                total: 6,
+                pageNext: "11",
+            },
+        });
+    });
+
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders with a specified pageNext", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                    { price: 15, quantity: 10 },
+                                    { price: 17, quantity: 4 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 4 },
+                                    { price: 13, quantity: 1 },
+                                    { price: 20, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                        [UUIDV4_3]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 2 },
+                                    { price: 13, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get(
+                "/v1/systems/omega/market/resources/aluminium/sell-orders?count=2&pageNext=11",
+            )
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 13, quantity: 5 },
+                { price: 15, quantity: 10 },
+            ],
+            pagination: {
+                total: 6,
+                pageNext: "15",
+                pagePrevious: "13",
+            },
+        });
+    });
+
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders with a specified pagePrevious", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                    { price: 15, quantity: 10 },
+                                    { price: 17, quantity: 4 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 4 },
+                                    { price: 13, quantity: 1 },
+                                    { price: 20, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                        [UUIDV4_3]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 2 },
+                                    { price: 13, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get(
+                "/v1/systems/omega/market/resources/aluminium/sell-orders?count=3&pagePrevious=20",
+            )
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 13, quantity: 5 },
+                { price: 15, quantity: 10 },
+                { price: 17, quantity: 4 },
+            ],
+            pagination: {
+                total: 6,
+                pageNext: "17",
+                pagePrevious: "13",
+            },
+        });
+    });
+
+    test("GET /v1/systems/{systemId}/market/resources/{resourceId}/sell-orders with a specified pagePrevious and without previous page", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    market: {
+                        [UUIDV4_1]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 3 },
+                                    { price: 11, quantity: 2 },
+                                    { price: 15, quantity: 10 },
+                                    { price: 17, quantity: 4 },
+                                ],
+                                zinc: [{ price: 10, quantity: 1 }],
+                            },
+                            buyOrders: {
+                                aluminium: [
+                                    { price: 9, quantity: 3 },
+                                    { price: 8, quantity: 4 },
+                                ],
+                            },
+                        },
+                        [UUIDV4_2]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 4 },
+                                    { price: 13, quantity: 1 },
+                                    { price: 20, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                        [UUIDV4_3]: {
+                            sellOrders: {
+                                aluminium: [
+                                    { price: 10, quantity: 2 },
+                                    { price: 13, quantity: 4 },
+                                ],
+                            },
+                            buyOrders: {
+                                aluminium: [{ price: 9, quantity: 1 }],
+                            },
+                        },
+                    },
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {},
+                        },
+                        [UUIDV4_2]: {
+                            inventoryId: UUIDV4_2,
+                            content: {},
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get(
+                "/v1/systems/omega/market/resources/aluminium/sell-orders?count=3&pagePrevious=13",
+            )
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            items: [
+                { price: 10, quantity: 9 },
+                { price: 11, quantity: 2 },
+            ],
+            pagination: {
+                total: 6,
+                pageNext: "11",
+            },
+        });
+    });
+
     test("GET /v1/systems/{systemId}/market/resources/{resourceId}/buy-orders/my", async () => {
         await seedTestData({
             systems: {

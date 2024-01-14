@@ -401,6 +401,9 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                                required:
+                                    - items
+                                    - pagination
                                 properties:
                                     items:
                                         type: array
@@ -865,6 +868,79 @@ paths:
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
     /systems/{systemId}/market/resources/{resourceId}/sell-orders:
+        get:
+            summary: Get the sell orders for this resource
+            tags:
+                - Markets
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+                - $ref: "#/components/parameters/resourceId"
+                - in: query
+                  name: count
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 20
+                      maximum: 50
+                  description: The number of items to return
+                - in: query
+                  name: pageNext
+                  schema:
+                      type: string
+                  description: A cursor to fetch the next items
+                - in: query
+                  name: pagePrevious
+                  schema:
+                      type: string
+                  description: A cursor to fetch the previous items
+            responses:
+                "200":
+                    description: Sell orders successfuly fetched
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - items
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            type: object
+                                            required:
+                                                - price
+                                                - quantity
+                                            properties:
+                                                price:
+                                                    type: integer
+                                                quantity:
+                                                    type: integer
+                                    pagination:
+                                        type: object
+                                        required:
+                                            - total
+                                        properties:
+                                            total:
+                                                type: number
+                                                minimum: 0
+                                            pageNext:
+                                                type: string
+                                            pagePrevious:
+                                                type: string
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System or resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
         post:
             summary: Place an order to sell a quantity of ressources at a certain price
             description: |
@@ -1027,6 +1103,79 @@ paths:
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
     /systems/{systemId}/market/resources/{resourceId}/buy-orders:
+        get:
+            summary: Get the buy orders for this resource
+            tags:
+                - Markets
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+                - $ref: "#/components/parameters/resourceId"
+                - in: query
+                  name: count
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 20
+                      maximum: 50
+                  description: The number of items to return
+                - in: query
+                  name: pageNext
+                  schema:
+                      type: string
+                  description: A cursor to fetch the next items
+                - in: query
+                  name: pagePrevious
+                  schema:
+                      type: string
+                  description: A cursor to fetch the previous items
+            responses:
+                "200":
+                    description: Buy orders successfuly fetched
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - items
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            type: object
+                                            required:
+                                                - price
+                                                - quantity
+                                            properties:
+                                                price:
+                                                    type: integer
+                                                quantity:
+                                                    type: integer
+                                    pagination:
+                                        type: object
+                                        required:
+                                            - total
+                                        properties:
+                                            total:
+                                                type: number
+                                                minimum: 0
+                                            pageNext:
+                                                type: string
+                                            pagePrevious:
+                                                type: string
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System or resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
         post:
             summary: Place an order to buy a quantity of ressources at a certain price
             description: |

@@ -15,6 +15,7 @@ import acquireMarketLock from "./acquireMarketLock";
 import { changeResourcesOfInventories } from "../app";
 import setupTransaction from "./setupTransaction";
 import { Op, Transaction } from "sequelize";
+import paginatedListRoute from "./paginatedListRoute";
 
 async function tryBuyOrSell(
     system: System,
@@ -248,7 +249,7 @@ async function tryBuyOrSell(
     return [totalCreditsExchanged, quantitiesExchanged];
 }
 
-export async function marketGetOrdersRoute(
+export async function marketGetMyOrdersRoute(
     req: Request<
         { systemId: string; resourceId: string },
         any,
@@ -285,6 +286,47 @@ export async function marketGetOrdersRoute(
             price: Number(BigInt(marketOrder.price)),
             quantity: Number(BigInt(marketOrder.quantity)),
         })),
+    );
+}
+
+export async function marketGetOrdersRoute(
+    req: Request<
+        { systemId: string; resourceId: string },
+        any,
+        { quantity: number; price: number }
+    >,
+    res: Response,
+    type: "buy" | "sell",
+) {
+    const system = await getOrNotFound<System>(
+        System,
+        req.params["systemId"],
+        res,
+    );
+
+    const resource = await getOrNotFound<Resource>(
+        Resource,
+        req.params["resourceId"],
+        res,
+    );
+
+    await paginatedListRoute(
+        req,
+        res,
+        MarketOrder,
+        [{ colName: "price", ascending: type == "sell" }],
+        (marketOrder) => ({
+            quantity: Number(BigInt(marketOrder.quantity)),
+            price: Number(BigInt(marketOrder.price)),
+        }),
+        {
+            systemId: system.id,
+            resourceId: resource.id,
+            type,
+        },
+        [],
+        ["price", [sequelize.fn("SUM", sequelize.col("quantity")), "quantity"]],
+        "price",
     );
 }
 

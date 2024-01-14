@@ -18,7 +18,8 @@ import getOrNotFound from "../utils/getOrNotFound";
 import { paths } from "../schema";
 import { serializeFleet, serializeSystem } from "../serializers";
 import {
-    marketGetOrdersRoute as marketGetMyOrdersRoute,
+    marketGetMyOrdersRoute,
+    marketGetOrdersRoute,
     marketInstantRoute,
     marketOrderRoute,
 } from "../utils/marketRoutesHelpers";
@@ -164,7 +165,7 @@ export default function addSystemsRoutes(router: Router) {
             req,
             res,
             Fleet,
-            ["id"],
+            [{ colName: "id", ascending: true }],
             (fleet) => serializeFleet(fleet, false),
             { locationSystemId: system.id },
             { model: FleetComposition },
@@ -242,6 +243,26 @@ export default function addSystemsRoutes(router: Router) {
         "/systems/:systemId/market/resources/:resourceId/buy-orders/my",
         async (req, res) => {
             await marketGetMyOrdersRoute(req, res, "buy");
+        },
+    );
+
+    router.get<
+        paths["/systems/{systemId}/market/resources/{resourceId}/buy-orders"]["get"]["parameters"]["path"],
+        paths["/systems/{systemId}/market/resources/{resourceId}/buy-orders"]["get"]["responses"][200]["content"]["application/json"]
+    >(
+        "/systems/:systemId/market/resources/:resourceId/buy-orders",
+        async (req, res) => {
+            await marketGetOrdersRoute(req, res, "buy");
+        },
+    );
+
+    router.get<
+        paths["/systems/{systemId}/market/resources/{resourceId}/sell-orders"]["get"]["parameters"]["path"],
+        paths["/systems/{systemId}/market/resources/{resourceId}/sell-orders"]["get"]["responses"][200]["content"]["application/json"]
+    >(
+        "/systems/:systemId/market/resources/:resourceId/sell-orders",
+        async (req, res) => {
+            await marketGetOrdersRoute(req, res, "sell");
         },
     );
 }

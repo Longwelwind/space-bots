@@ -2,10 +2,13 @@ import { Request, Response } from "express";
 import HttpError from "./HttpError";
 import {
     Attributes,
+    FindAttributeOptions,
+    GroupOption,
     Includeable,
     Model,
     ModelStatic,
     Op,
+    Sequelize,
     WhereOptions,
 } from "sequelize";
 import _ from "lodash";
@@ -19,10 +22,12 @@ export default async function paginatedListRoute<E extends Model>(
     >,
     res: Response,
     modelToList: ModelStatic<E>,
-    sortingKeys: string[],
+    sortingKeys: { colName: string; ascending: boolean }[],
     serializer: (e: E) => any,
     whereConditions: WhereOptions<Attributes<E>> = {},
     includes: Includeable | Includeable[] = [],
+    attributes: FindAttributeOptions = null,
+    group: string = null,
 ) {
     const count = req.query["count"] || 20;
     const pagePrevious = req.query["pagePrevious"]?.split(",");
@@ -41,16 +46,18 @@ export default async function paginatedListRoute<E extends Model>(
         ...(isGoingForward && pageNext != null
             ? Object.assign(
                   {},
-                  ...sortingKeys.map((key, i) => ({
-                      [key]: { [Op.gt]: pageNext[i] },
+                  ...sortingKeys.map(({ colName, ascending }, i) => ({
+                      [colName]: { [ascending ? Op.gt : Op.lt]: pageNext[i] },
                   })),
               )
             : {}),
         ...(!isGoingForward
             ? Object.assign(
                   {},
-                  ...sortingKeys.map((key, i) => ({
-                      [key]: { [Op.lt]: pagePrevious[i] },
+                  ...sortingKeys.map(({ colName, ascending }, i) => ({
+                      [colName]: {
+                          [ascending ? Op.lt : Op.gt]: pagePrevious[i],
+                      },
                   })),
               )
             : {}),
@@ -63,13 +70,18 @@ export default async function paginatedListRoute<E extends Model>(
         },
         order: [
             // @ts-expect-error Again...
-            sortingKeys.map((sortingKey) => [
-                sortingKey,
-                ...(isGoingForward ? [] : ["DESC"]),
+            sortingKeys.map(({ colName, ascending }) => [
+                colName,
+                ...((isGoingForward && ascending) ||
+                (!isGoingForward && !ascending)
+                    ? []
+                    : ["DESC"]),
             ]),
         ],
         limit: count,
         include: includes,
+        ...(group != null ? { group } : {}),
+        ...(attributes != null ? { attributes } : {}),
     });
 
     const totalLeft = await modelToList.count({
@@ -77,6 +89,24 @@ export default async function paginatedListRoute<E extends Model>(
             ...whereConditions,
             ...whereConditionsForPaginations,
         },
+        ...(group != null
+            ? {
+                  col: group,
+                  distinct: true,
+              }
+            : {}),
+    });
+
+    const total = await modelToList.count({
+        where: {
+            ...whereConditions,
+        },
+        ...(group != null
+            ? {
+                  col: group,
+                  distinct: true,
+              }
+            : {}),
     });
 
     // To keep `rows`in
@@ -84,17 +114,11 @@ export default async function paginatedListRoute<E extends Model>(
         rows.reverse();
     }
 
-    const total = await modelToList.count({
-        where: {
-            ...whereConditions,
-        },
-    });
-
     const potentialPageNext = sortingKeys
-        .map((sortingKey) => rows[rows.length - 1][sortingKey])
+        .map(({ colName }) => rows[rows.length - 1][colName])
         .join(",");
     const potentialPagePrevious = sortingKeys
-        .map((sortingKey) => rows[0][sortingKey])
+        .map(({ colName }) => rows[0][colName])
         .join(",");
 
     res.send({
