@@ -97,13 +97,17 @@ export function serializeUserForWebsite(user: User) {
     };
 }
 
-export function serializeUser(user: User) {
+export function serializeUser(user: User, personal: boolean) {
     return {
         id: user.id,
         name: user.name,
-        credits: Number(BigInt(user.credits)),
-        createdAt: user.createdAt,
-        registered: user.registered,
+        ...(personal
+            ? {
+                  credits: Number(BigInt(user.credits)),
+                  createdAt: user.createdAt,
+                  registered: user.registered,
+              }
+            : {}),
     };
 }
 

@@ -2,6 +2,7 @@ import request from "supertest";
 import testSetup from "../__tests__/testSetup";
 import seedTestData from "../__tests__/seedTestData";
 import app from "../app";
+import { UUIDV4_2 } from "../__tests__/helpers";
 
 describe("/v1/users", () => {
     testSetup();
@@ -17,5 +18,16 @@ describe("/v1/users", () => {
         expect(res.status).toEqual(200);
 
         // TODO: Add a check that the username indeed changed
+    });
+
+    test("GET /v1/users/{userId} pass", async () => {
+        await seedTestData({});
+
+        const res = await request(app)
+            .get("/v1/users/" + UUIDV4_2)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({ id: UUIDV4_2, name: "User2" });
     });
 });

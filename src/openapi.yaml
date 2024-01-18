@@ -77,6 +77,39 @@ paths:
                     $ref: "#/components/responses/401_unauthorized"
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
+    /users/{userId}:
+        get:
+            summary: Return information about a user
+            tags:
+                - Users
+            parameters:
+                - $ref: "#/components/parameters/userId"
+            responses:
+                "200":
+                    description: Info about the specified user
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                    name:
+                                        type: string
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: User not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
     /systems/{systemId}:
         get:
             summary: Return info about a system
@@ -1512,6 +1545,13 @@ components:
                 type: string
             required: true
             description: ID of the resource
+        userId:
+            in: path
+            name: userId
+            schema:
+                type: string
+            required: true
+            description: ID of the user
     schemas:
         Fleet:
             type: object

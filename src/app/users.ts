@@ -4,6 +4,7 @@ import setupTransaction from "../utils/setupTransaction";
 import HttpError from "../utils/HttpError";
 import { User, sequelize } from "../database";
 import { serializeUser } from "../serializers";
+import getOrNotFound from "../utils/getOrNotFound";
 
 export default function addUsersRoutes(router: Router) {
     router.post<
@@ -34,6 +35,16 @@ export default function addUsersRoutes(router: Router) {
         paths["/users/me"]["get"]["responses"][200]["content"]["application/json"],
         null
     >("/users/me", async (req, res) => {
-        res.json(serializeUser(res.locals.user));
+        res.json(serializeUser(res.locals.user, true));
+    });
+
+    router.get<
+        paths["/users/{userId}"]["get"]["parameters"]["path"],
+        paths["/users/{userId}"]["get"]["responses"][200]["content"]["application/json"],
+        null
+    >("/users/:userId", async (req, res) => {
+        const user = await getOrNotFound<User>(User, req.params["userId"], res);
+
+        res.json(serializeUser(user, false));
     });
 }
