@@ -7,7 +7,6 @@ export default function testSetup() {
     util.inspect.defaultOptions.depth = null;
 
     jest.useFakeTimers();
-    jest.spyOn(global, "setTimeout");
 
     beforeAll(async () => {
         await drop({ logging: false, cascade: true });
