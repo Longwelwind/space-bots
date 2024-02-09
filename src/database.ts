@@ -75,7 +75,7 @@ export class ModuleTypeLevel extends Model {
     @Column
     declare moduleTypeId: string;
 
-    @BelongsTo(() => ModuleType, "levels")
+    @BelongsTo(() => ModuleType)
     moduleType: ModuleType;
 
     @PrimaryKey
