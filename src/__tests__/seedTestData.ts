@@ -5,6 +5,13 @@ import {
     Inventory,
     InventoryItem,
     MarketOrder,
+    Module,
+    ModuleRefineryJob,
+    ModuleType,
+    ModuleTypeLevel,
+    ModuleTypeRefineryBlueprint,
+    ModuleTypeRefineryBlueprintInputResource,
+    ModuleTypeRefineryBlueprintOutputResource,
     Resource,
     ShipType,
     ShipTypeBuildResources,
@@ -16,6 +23,10 @@ import {
 } from "../database";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
 import { stat } from "fs";
+import path from "path";
+import logger from "../utils/logger";
+
+const LOGGER = logger(path.relative(process.cwd(), __filename));
 
 interface TestData {
     fleets?: {
@@ -33,6 +44,17 @@ interface TestData {
     };
     systems?: {
         [systemId: string]: {
+            modules?: {
+                [userId: string]: {
+                    id: string;
+                    moduleTypeId: string;
+                    level: number;
+                    jobs?: {
+                        count: number;
+                        blueprintId: string;
+                    }[];
+                }[];
+            };
             stationInventories?: {
                 [userId: string]: {
                     inventoryId: string;
@@ -65,7 +87,6 @@ export default async function seedTestData(testData: TestData) {
     const options = {
         logging: false,
     };
-
     await Resource.bulkCreate(
         [
             { id: "aluminium", name: "Aluminium", price: 10 },
@@ -73,6 +94,103 @@ export default async function seedTestData(testData: TestData) {
             { id: "titane", name: "Titane", price: 10 },
             { id: "zirconium", name: "Zirconium", price: 10 },
             { id: "mithril", name: "Mithril", price: 10 },
+        ],
+        options,
+    );
+
+    await ModuleType.bulkCreate(
+        [
+            {
+                id: "refinery-super-alloy",
+                name: "Refinery of Super Alloy!!",
+                kind: "refinery",
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeRefineryBlueprint.bulkCreate(
+        [
+            {
+                id: "make-mithril",
+                creditCost: 10,
+                unlockLevel: 1,
+                moduleTypeId: "refinery-super-alloy",
+                time: 2,
+            },
+            {
+                id: "make-mithril-improved",
+                creditCost: 30,
+                unlockLevel: 3,
+                moduleTypeId: "refinery-super-alloy",
+                time: 3,
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeRefineryBlueprintInputResource.bulkCreate(
+        [
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril",
+                resourceId: "aluminium",
+                quantity: 15,
+            },
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril",
+                resourceId: "zinc",
+                quantity: 25,
+            },
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril-improved",
+                resourceId: "aluminium",
+                quantity: 10,
+            },
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril-improved",
+                resourceId: "zinc",
+                quantity: 20,
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeRefineryBlueprintOutputResource.bulkCreate(
+        [
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril",
+                resourceId: "mithril",
+                quantity: 10,
+            },
+            {
+                moduleTypeRefineryBlueprintId: "make-mithril-improved",
+                resourceId: "mithril",
+                quantity: 15,
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeLevel.bulkCreate(
+        [
+            {
+                moduleTypeId: "refinery-super-alloy",
+                level: 1,
+                creditCost: 100,
+                maxJobs: 1,
+            },
+            {
+                moduleTypeId: "refinery-super-alloy",
+                level: 2,
+                creditCost: 400,
+                maxJobs: 10,
+            },
+            {
+                moduleTypeId: "refinery-super-alloy",
+                level: 3,
+                creditCost: 1000,
+                maxJobs: 100,
+            },
         ],
         options,
     );
@@ -156,7 +274,11 @@ export default async function seedTestData(testData: TestData) {
 
     await ShipTypeBuildResources.bulkCreate(
         [
-            { shipTypeId: "fighter", resourceId: "aluminium", quantity: 10 },
+            {
+                shipTypeId: "fighter",
+                resourceId: "aluminium",
+                quantity: 10,
+            },
             { shipTypeId: "fighter", resourceId: "zinc", quantity: 15 },
         ],
         options,
@@ -400,6 +522,78 @@ export default async function seedTestData(testData: TestData) {
                                                       )
                                                     : [],
                                             ),
+                                        ),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
+        options,
+    );
+
+    await Module.bulkCreate(
+        [
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([systemId, systemData]) =>
+                              systemData.modules
+                                  ? _.flatMap(
+                                        Object.entries(systemData.modules).map(
+                                            ([userId, modulesData]) =>
+                                                modulesData.map(
+                                                    (moduleData) => ({
+                                                        id: moduleData.id,
+                                                        systemId,
+                                                        userId,
+                                                        moduleTypeId:
+                                                            moduleData.moduleTypeId,
+                                                        level: moduleData.level,
+                                                    }),
+                                                ),
+                                        ),
+                                    )
+                                  : [],
+                      ),
+                  )
+                : []),
+        ],
+        options,
+    );
+
+    await ModuleRefineryJob.bulkCreate(
+        [
+            ...(testData.systems
+                ? _.flatMap(
+                      Object.entries(testData.systems).map(
+                          ([_systemId, systemData]) =>
+                              systemData.modules
+                                  ? _.flatMap(
+                                        Object.entries(systemData.modules).map(
+                                            ([_userId, modulesData]) =>
+                                                _.flatMap(
+                                                    modulesData.map(
+                                                        (moduleData) =>
+                                                            moduleData.jobs
+                                                                ? moduleData.jobs.map(
+                                                                      (
+                                                                          job,
+                                                                      ) => ({
+                                                                          moduleId:
+                                                                              moduleData.id,
+                                                                          moduleTypeRefineryBlueprintId:
+                                                                              job.blueprintId,
+                                                                          count: job.count,
+                                                                          startTime:
+                                                                              new Date(),
+                                                                          finishTime:
+                                                                              new Date(),
+                                                                      }),
+                                                                  )
+                                                                : [],
+                                                    ),
+                                                ),
                                         ),
                                     )
                                   : [],

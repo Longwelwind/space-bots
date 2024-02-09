@@ -42,6 +42,123 @@ export class Resource extends Model {
     declare price: number;
 }
 
+@Table({ modelName: "ModuleTypes" })
+export class ModuleType extends Model {
+    @PrimaryKey
+    @Column
+    declare id: string;
+
+    @Column({ allowNull: false })
+    declare name: string;
+
+    @Column({ allowNull: false })
+    declare kind: "refinery";
+
+    @HasMany(() => ModuleTypeLevel)
+    levels: ModuleTypeLevel[];
+
+    /**
+     * Refinery type
+     */
+    @HasMany(() => ModuleTypeRefineryBlueprint)
+    blueprints: ModuleTypeRefineryBlueprint[];
+
+    getBlueprintsForLevel(level: number) {
+        return this.blueprints.filter((b) => b.unlockLevel == level);
+    }
+}
+
+@Table({ modelName: "ModuleTypeLevels" })
+export class ModuleTypeLevel extends Model {
+    @PrimaryKey
+    @ForeignKey(() => ModuleType)
+    @Column
+    declare moduleTypeId: string;
+
+    @BelongsTo(() => ModuleType, "levels")
+    moduleType: ModuleType;
+
+    @PrimaryKey
+    @Column
+    declare level: number;
+
+    @Column
+    declare creditCost: number;
+
+    /**
+     * Refinery type
+     */
+    @Column
+    declare maxJobs: number;
+}
+
+@Table({ modelName: "ModuleTypeRefineryBlueprints" })
+export class ModuleTypeRefineryBlueprint extends Model {
+    @PrimaryKey
+    @Column
+    declare id: string;
+
+    @ForeignKey(() => ModuleType)
+    @Column({ allowNull: false })
+    declare moduleTypeId: string;
+
+    @BelongsTo(() => ModuleType)
+    moduleType: ModuleType;
+
+    @Column
+    declare creditCost: number;
+
+    @Column({ allowNull: false })
+    declare unlockLevel: number;
+
+    @Column({ allowNull: false })
+    declare time: number;
+
+    @HasMany(() => ModuleTypeRefineryBlueprintInputResource)
+    inputResources: ModuleTypeRefineryBlueprintInputResource[];
+
+    @HasMany(() => ModuleTypeRefineryBlueprintOutputResource)
+    outputResources: ModuleTypeRefineryBlueprintOutputResource[];
+}
+
+@Table({ modelName: "ModuleTypeRefineryBlueprintInputResources" })
+export class ModuleTypeRefineryBlueprintInputResource extends Model {
+    @PrimaryKey
+    @ForeignKey(() => ModuleTypeRefineryBlueprint)
+    @Column
+    declare moduleTypeRefineryBlueprintId: string;
+
+    @BelongsTo(() => ModuleTypeRefineryBlueprint)
+    moduleTypeRefineryBlueprint: ModuleTypeRefineryBlueprint;
+
+    @PrimaryKey
+    @ForeignKey(() => Resource)
+    @Column
+    declare resourceId: string;
+
+    @Column
+    declare quantity: number;
+}
+
+@Table({ modelName: "ModuleTypeRefineryRecipeOutputResources" })
+export class ModuleTypeRefineryBlueprintOutputResource extends Model {
+    @PrimaryKey
+    @ForeignKey(() => ModuleTypeRefineryBlueprint)
+    @Column
+    declare moduleTypeRefineryBlueprintId: string;
+
+    @BelongsTo(() => ModuleTypeRefineryBlueprint)
+    moduleTypeRefineryBlueprint: ModuleTypeRefineryBlueprint;
+
+    @PrimaryKey
+    @ForeignKey(() => Resource)
+    @Column
+    declare resourceId: string;
+
+    @Column
+    declare quantity: number;
+}
+
 @Table({ modelName: "Users" })
 export class User extends Model {
     @PrimaryKey
@@ -262,6 +379,73 @@ export class Fleet extends Model {
     declare miningResourceId: string;
 }
 
+@Table({ modelName: "Module" })
+export class Module extends Model {
+    @PrimaryKey
+    @Column({ type: UUID, defaultValue: UUIDV4 })
+    declare id: string;
+
+    @ForeignKey(() => User)
+    @Column({ type: UUID })
+    declare userId: string;
+
+    @BelongsTo(() => User)
+    user: User;
+
+    @ForeignKey(() => System)
+    @Column
+    declare systemId: string;
+
+    @BelongsTo(() => System)
+    system: System;
+
+    @ForeignKey(() => ModuleType)
+    @Column
+    declare moduleTypeId: string;
+
+    @BelongsTo(() => ModuleType)
+    moduleType: ModuleType;
+
+    @Column
+    declare level: number;
+
+    /**
+     * Refineries
+     */
+    @HasMany(() => ModuleRefineryJob)
+    jobs: ModuleRefineryJob[];
+}
+
+@Table({ modelName: "ModuleRefineryJobs" })
+export class ModuleRefineryJob extends Model {
+    @PrimaryKey
+    @Column({ type: UUID, defaultValue: UUIDV4 })
+    declare id: string;
+
+    @ForeignKey(() => Module)
+    @Column({ type: UUID, allowNull: false })
+    declare moduleId: string;
+
+    @BelongsTo(() => Module)
+    module: Module;
+
+    @ForeignKey(() => ModuleTypeRefineryBlueprint)
+    @Column({ allowNull: false })
+    declare moduleTypeRefineryBlueprintId: string;
+
+    @BelongsTo(() => ModuleTypeRefineryBlueprint)
+    moduleTypeRefineryBlueprint: ModuleTypeRefineryBlueprint;
+
+    @Column({ allowNull: false })
+    declare count: number;
+
+    @Column({ allowNull: false })
+    declare startTime: Date;
+
+    @Column({ allowNull: false })
+    declare finishTime: Date;
+}
+
 @Table({ modelName: "FleetComposition" })
 export class FleetComposition extends Model {
     @PrimaryKey
@@ -462,6 +646,13 @@ sequelize.addModels([
     ShipTypeBuildResources,
     MarketOrder,
     MarketTransaction,
+    ModuleType,
+    ModuleTypeLevel,
+    ModuleTypeRefineryBlueprint,
+    ModuleTypeRefineryBlueprintInputResource,
+    ModuleTypeRefineryBlueprintOutputResource,
+    Module,
+    ModuleRefineryJob,
 ]);
 
 export async function sync(options = {}) {

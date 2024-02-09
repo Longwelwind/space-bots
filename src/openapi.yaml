@@ -1408,6 +1408,196 @@ paths:
                                         enum: ["not_found"]
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
+    /systems/{systemId}/station/modules:
+        get:
+            summary: Get all of your modules in this station
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+            responses:
+                "200":
+                    description: All modules returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Module"
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System or module type not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /systems/{systemId}/station/modules/{moduleTypeId}/refine:
+        post:
+            summary: Launch a refining job
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+                - $ref: "#/components/parameters/moduleTypeId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - count
+                                - blueprintId
+                            properties:
+                                count:
+                                    type: integer
+                                    minimum: 1
+                                blueprintId:
+                                    type: string
+            responses:
+                "200":
+                    description: Refine job launched
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - startTime
+                                    - finishTime
+                                    - duration
+                                properties:
+                                    startTime:
+                                        type: string
+                                        format: date-time
+                                    finishTime:
+                                        type: string
+                                        format: date-time
+                                    duration:
+                                        type: number
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "not_enough_resources",
+                                                "not_enough_credits",
+                                                "not_refinery",
+                                                "no_module",
+                                                "too_many_jobs",
+                                            ]
+                "404":
+                    description: System or module type not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+    /systems/{systemId}/station/modules/build:
+        post:
+            summary: Build or upgrade a module in this station
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - moduleTypeId
+                            properties:
+                                moduleTypeId:
+                                    type: string
+            responses:
+                "200":
+                    description: Module built
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "already_at_max_level",
+                                                "not_enough_credits",
+                                            ]
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System or module type not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
+    /module-types:
+        get:
+            summary: Get all modules types
+            tags:
+                - Industries
+            responses:
+                "200":
+                    description: All modules types returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - items
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/ModuleType"
+
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
     /systems/{systemId}/market/resources/{resourceId}/sell-orders/my:
         get:
             summary: Get your sell orders for this resource
@@ -1552,6 +1742,13 @@ components:
                 type: string
             required: true
             description: ID of the user
+        moduleTypeId:
+            in: path
+            name: moduleTypeId
+            schema:
+                type: string
+            required: true
+            description: ID of the module type
     schemas:
         Fleet:
             type: object
@@ -1615,3 +1812,110 @@ components:
                 cargo:
                     type: object
                     example: { "aluminium": 20 }
+        ModuleType:
+            oneOf:
+                - $ref: "#/components/schemas/ModuleTypeRefinery"
+            discriminator:
+                propertyName: type
+                mapping:
+                    refinery: "#/components/schemas/ModuleTypeRefinery"
+        ModuleTypeBase:
+            type: object
+            required:
+                - id
+                - name
+                - kind
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                kind:
+                    type: string
+                    enum: ["refinery"]
+                levels:
+                    type: array
+                    items:
+                        type: object
+                        required:
+                            - cost
+                        properties:
+                            cost:
+                                type: object
+                                properties:
+                                    credits:
+                                        type: integer
+                                    resources:
+                                        type: object
+                                        properties:
+                                            additionalProperties:
+                                                type: integer
+        ModuleTypeRefinery:
+            allOf:
+                - $ref: "#/components/schemas/ModuleTypeBase"
+                - type: object
+                  required:
+                      - levels
+                  properties:
+                      levels:
+                          type: array
+                          items:
+                              type: object
+                              properties:
+                                  maxJobs:
+                                      type: integer
+                                  blueprints:
+                                      type: array
+                                      items:
+                                          type: object
+                                          required:
+                                              - inputs
+                                              - outputs
+                                              - credits
+                                              - time
+                                          properties:
+                                              inputs:
+                                                  type: object
+                                                  additionalProperties:
+                                                      type: integer
+                                                      minimum: 1
+                                              outputs:
+                                                  type: object
+                                                  additionalProperties:
+                                                      type: integer
+                                                      minimum: 1
+                                              time:
+                                                  type: number
+                                              credits:
+                                                  type: number
+        Module:
+            oneOf:
+                - $ref: "#/components/schemas/ModuleRefinery"
+        ModuleBase:
+            type: object
+            required:
+                - moduleTypeId
+                - level
+            properties:
+                moduleTypeId:
+                    type: string
+                level:
+                    type: number
+        ModuleRefinery:
+            allOf:
+                - $ref: "#/components/schemas/ModuleBase"
+                - type: object
+                  properties:
+                      jobs:
+                          type: array
+                          items:
+                              type: object
+                              properties:
+                                  count:
+                                      type: integer
+                                  blueprintId:
+                                      type: string
+                                  startTime:
+                                      type: string
+                                  finishTime:
+                                      type: string

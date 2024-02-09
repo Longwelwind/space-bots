@@ -3,6 +3,11 @@ import {
     FleetComposition,
     Inventory,
     InventoryItem,
+    ModuleType,
+    ModuleTypeLevel,
+    ModuleTypeRefineryBlueprint,
+    ModuleTypeRefineryBlueprintInputResource,
+    ModuleTypeRefineryBlueprintOutputResource,
     Resource,
     ShipType,
     System,
@@ -33,6 +38,75 @@ async function seed() {
         { id: "titanium", name: "Titanium", price: 20 },
         { id: "zirconium", name: "Zirconium", price: 30 },
         { id: "mithril", name: "Mithril", price: 50 },
+    ]);
+
+    await ModuleType.bulkCreate([
+        { id: "refinery", name: "Refinery", kind: "refinery" },
+    ]);
+
+    await ModuleTypeLevel.bulkCreate([
+        { moduleTypeId: "refinery", level: 1, creditCost: 100, maxJobs: 1 },
+    ]);
+
+    await ModuleTypeLevel.bulkCreate([
+        { moduleTypeId: "refinery", level: 2, creditCost: 1000, maxJobs: 10 },
+    ]);
+
+    await ModuleTypeLevel.bulkCreate([
+        { moduleTypeId: "refinery", level: 3, creditCost: 10000, maxJobs: 100 },
+    ]);
+
+    await ModuleTypeRefineryBlueprint.bulkCreate([
+        {
+            id: "refine-mithril",
+            creditCost: 10,
+            unlockLevel: 1,
+            moduleTypeId: "refinery",
+            time: 10,
+        },
+        {
+            id: "refine-mithril-improved",
+            creditCost: 30,
+            unlockLevel: 3,
+            moduleTypeId: "refinery",
+            time: 10,
+        },
+    ]);
+
+    await ModuleTypeRefineryBlueprintInputResource.bulkCreate([
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril",
+            resourceId: "aluminium",
+            quantity: 15,
+        },
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril",
+            resourceId: "zinc",
+            quantity: 25,
+        },
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril-improved",
+            resourceId: "aluminium",
+            quantity: 10,
+        },
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril-improved",
+            resourceId: "zinc",
+            quantity: 20,
+        },
+    ]);
+
+    await ModuleTypeRefineryBlueprintOutputResource.bulkCreate([
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril",
+            resourceId: "mithril",
+            quantity: 10,
+        },
+        {
+            moduleTypeRefineryBlueprintId: "refine-mithril-improved",
+            resourceId: "mithril",
+            quantity: 15,
+        },
     ]);
 
     await System.bulkCreate([

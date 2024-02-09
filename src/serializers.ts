@@ -1,5 +1,13 @@
-import e from "express";
-import { Fleet, Inventory, Resource, ShipType, System, User } from "./database";
+import {
+    Fleet,
+    Inventory,
+    Module,
+    ModuleType,
+    Resource,
+    ShipType,
+    System,
+    User,
+} from "./database";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
@@ -108,6 +116,73 @@ export function serializeUser(user: User, personal: boolean) {
                   registered: user.registered,
               }
             : {}),
+    };
+}
+
+export function serializeModule(module: Module) {
+    return {
+        moduleTypeId: module.moduleTypeId,
+        level: module.level,
+        ...(module.moduleType.kind == "refinery"
+            ? {
+                  jobs: module.jobs.map((job) => ({
+                      count: job.count,
+                      blueprintId: job.moduleTypeRefineryBlueprintId,
+                      startTime: job.startTime.toISOString(),
+                      finishTime: job.finishTime.toISOString(),
+                  })),
+              }
+            : {}),
+    };
+}
+
+export function serializeModuleType(moduleType: ModuleType) {
+    return {
+        id: moduleType.id,
+        name: moduleType.name,
+        kind: moduleType.kind,
+        levels: moduleType.levels
+            .sort((a, b) => a.level - b.level)
+            .map((level) => ({
+                cost: {
+                    ...(level.creditCost > 0
+                        ? { credits: level.creditCost }
+                        : {}),
+                },
+                ...(moduleType.kind == "refinery"
+                    ? {
+                          maxJobs: level.maxJobs,
+                          ...(moduleType.getBlueprintsForLevel(level.level)
+                              .length > 0
+                              ? {
+                                    blueprints: moduleType
+                                        .getBlueprintsForLevel(level.level)
+                                        .map((blueprint) => ({
+                                            id: blueprint.id,
+                                            credits: blueprint.creditCost,
+                                            time: blueprint.time,
+                                            inputs: Object.fromEntries(
+                                                blueprint.inputResources.map(
+                                                    (input) => [
+                                                        input.resourceId,
+                                                        input.quantity,
+                                                    ],
+                                                ),
+                                            ),
+                                            outputs: Object.fromEntries(
+                                                blueprint.outputResources.map(
+                                                    (input) => [
+                                                        input.resourceId,
+                                                        input.quantity,
+                                                    ],
+                                                ),
+                                            ),
+                                        })),
+                                }
+                              : {}),
+                      }
+                    : {}),
+            })),
     };
 }
 

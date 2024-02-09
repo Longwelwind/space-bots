@@ -29,6 +29,7 @@ import authMiddleware from "./utils/authMiddleware";
 import setupTransaction from "./utils/setupTransaction";
 import addSystemsRoutes from "./app/systems";
 import addUsersRoutes from "./app/users";
+import addModuleTypesRoutes from "./app/moduleTypes";
 
 export const LOGGER = logger(moduleName(__filename));
 
@@ -127,6 +128,7 @@ addUsersRoutes(gameRouter);
 addShipTypesRoutes(gameRouter);
 addSystemsRoutes(gameRouter);
 addResourcesRoutes(gameRouter);
+addModuleTypesRoutes(gameRouter);
 
 export async function createFleet(
     ownerUserId: string,

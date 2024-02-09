@@ -2,9 +2,10 @@ import _ from "lodash";
 import { v4 } from "uuid";
 
 import { traceIdStore } from "../utils/logger";
-import { Fleet } from "../database";
+import { Fleet, ModuleRefineryJob } from "../database";
 import scheduleFleetArrival from "./scheduleFleetArrival";
 import scheduleMiningFinish from "./scheduleMiningFinish";
+import scheduleModuleJobFinish from "./scheduleModuleJobFinish";
 
 export const scheduledTaskTimeouts: NodeJS.Timeout[] = [];
 
@@ -42,5 +43,12 @@ export async function launchDelayedTasks() {
 
     miningFleets.forEach((fleet) => {
         scheduleMiningFinish(fleet.id, fleet.miningFinishTime);
+    });
+
+    // Refinery modules jobs
+    const refineryJobs = await ModuleRefineryJob.findAll();
+
+    refineryJobs.forEach((refineryJob) => {
+        scheduleModuleJobFinish(refineryJob.id, refineryJob.finishTime);
     });
 }
