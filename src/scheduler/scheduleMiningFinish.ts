@@ -1,12 +1,10 @@
 import { LOGGER } from "../app";
 
-import {
-    sequelize,
-    Fleet,
-    FleetComposition,
-    ShipType,
-    Inventory,
-} from "../database";
+import { sequelize } from "../models/database";
+import Fleet from "../models/Fleet";
+import ShipType from "../models/static-game-data/ShipType";
+import Inventory from "../models/Inventory";
+import FleetComposition from "../models/FleetComposition";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";

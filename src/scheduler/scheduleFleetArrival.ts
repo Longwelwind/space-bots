@@ -1,6 +1,7 @@
 import { LOGGER } from "../app";
 
-import { sequelize, Fleet } from "../database";
+import { sequelize } from "../models/database";
+import Fleet from "../models/Fleet";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";
 

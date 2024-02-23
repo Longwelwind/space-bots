@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
 import getOrNotFound from "./getOrNotFound";
-import {
-    Inventory,
-    MarketOrder,
-    MarketTransaction,
-    Resource,
-    StationInventory,
-    System,
-    User,
-    sequelize,
-} from "../database";
+import { sequelize } from "../models/database";
+import Resource from "../models/static-game-data/Resource";
+import Inventory from "../models/Inventory";
+import System from "../models/static-game-data/System";
+import MarketTransaction from "../models/MarketTransaction";
+import MarketOrder from "../models/MarketOrder";
+import StationInventory from "../models/StationInventory";
+import User from "../models/User";
 import HttpError from "./HttpError";
 import acquireMarketLock from "./acquireMarketLock";
 import { changeResourcesOfInventories } from "./changeResourcesOfInventories";

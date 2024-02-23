@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Resource } from "../database";
+import Resource from "../models/static-game-data/Resource";
 import { paths } from "../schema";
 import { serializeResource } from "../serializers";
 

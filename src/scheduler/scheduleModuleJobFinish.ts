@@ -1,17 +1,15 @@
 import { LOGGER } from "../app";
 
-import {
-    sequelize,
-    Fleet,
-    FleetComposition,
-    ShipType,
-    Inventory,
-    ModuleRefineryJob,
-    ModuleTypeRefineryBlueprint,
-    ModuleTypeRefineryBlueprintOutputResource,
-    StationInventory,
-    Module,
-} from "../database";
+import { sequelize } from "../models/database";
+import Fleet from "../models/Fleet";
+import ShipType from "../models/static-game-data/ShipType";
+import Inventory from "../models/Inventory";
+import ModuleTypeRefineryBlueprintOutputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintOutputResource";
+import ModuleTypeRefineryBlueprint from "../models/static-game-data/ModuleTypeRefineryBlueprint";
+import StationInventory from "../models/StationInventory";
+import FleetComposition from "../models/FleetComposition";
+import ModuleRefineryJob from "../models/ModuleRefineryJob";
+import Module from "../models/Module";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";

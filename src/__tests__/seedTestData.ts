@@ -1,26 +1,24 @@
 import _ from "lodash";
-import {
-    Fleet,
-    FleetComposition,
-    Inventory,
-    InventoryItem,
-    MarketOrder,
-    Module,
-    ModuleRefineryJob,
-    ModuleType,
-    ModuleTypeLevel,
-    ModuleTypeRefineryBlueprint,
-    ModuleTypeRefineryBlueprintInputResource,
-    ModuleTypeRefineryBlueprintOutputResource,
-    Resource,
-    ShipType,
-    ShipTypeBuildResources,
-    StationInventory,
-    System,
-    SystemLink,
-    User,
-    checkProductionDatabase,
-} from "../database";
+import { checkProductionDatabase } from "../models/database";
+import ModuleType from "../models/static-game-data/ModuleType";
+import Resource from "../models/static-game-data/Resource";
+import Fleet from "../models/Fleet";
+import ShipTypeBuildResources from "../models/static-game-data/ShipTypeBuildResources";
+import ShipType from "../models/static-game-data/ShipType";
+import InventoryItem from "../models/InventoryItem";
+import Inventory from "../models/Inventory";
+import System from "../models/static-game-data/System";
+import ModuleTypeRefineryBlueprintOutputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintOutputResource";
+import ModuleTypeRefineryBlueprintInputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintInputResource";
+import ModuleTypeRefineryBlueprint from "../models/static-game-data/ModuleTypeRefineryBlueprint";
+import ModuleTypeLevel from "../models/static-game-data/ModuleTypeLevel";
+import SystemLink from "../models/static-game-data/SystemLink";
+import MarketOrder from "../models/MarketOrder";
+import StationInventory from "../models/StationInventory";
+import FleetComposition from "../models/FleetComposition";
+import ModuleRefineryJob from "../models/ModuleRefineryJob";
+import Module from "../models/Module";
+import User from "../models/User";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
 import { stat } from "fs";
 import path from "path";

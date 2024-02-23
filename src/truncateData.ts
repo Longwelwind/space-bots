@@ -1,4 +1,4 @@
-import { checkProductionDatabase, truncate } from "./database";
+import { checkProductionDatabase, truncate } from "./models/database";
 
 async function main() {
     checkProductionDatabase();

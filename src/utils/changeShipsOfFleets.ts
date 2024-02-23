@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
-import { FleetComposition, Fleet } from "../database";
+import Fleet from "../models/Fleet";
+import FleetComposition from "../models/FleetComposition";
 import asyncSequentialMap from "./asyncSequentialMap";
 
 export default async function changeShipsOfFleets(

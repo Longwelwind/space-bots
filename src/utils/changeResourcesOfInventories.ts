@@ -1,5 +1,5 @@
 import { Transaction } from "sequelize";
-import { InventoryItem } from "../database";
+import InventoryItem from "../models/InventoryItem";
 import asyncSequentialMap from "./asyncSequentialMap";
 
 export async function changeResourcesOfInventories(

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ShipType } from "../database";
+import ShipType from "../models/static-game-data/ShipType";
 import { paths } from "../schema";
 import { serializeShipTypes } from "../serializers";
 

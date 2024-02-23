@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
 import hashCode from "./hashCode";
-import { sequelize } from "../database";
+import { sequelize } from "../models/database";
 
 /**
  * For market operations, the lock that is acquired is a more global lock

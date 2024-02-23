@@ -1,20 +1,18 @@
 import { Router } from "express";
 import { paths } from "../schema";
 import getOrNotFound from "../utils/getOrNotFound";
-import {
-    Fleet,
-    FleetComposition,
-    Inventory,
-    InventoryItem,
-    Resource,
-    ShipType,
-    ShipTypeBuildResources,
-    StationInventory,
-    System,
-    SystemLink,
-    User,
-    sequelize,
-} from "../database";
+import { sequelize } from "../models/database";
+import Resource from "../models/static-game-data/Resource";
+import Fleet from "../models/Fleet";
+import ShipTypeBuildResources from "../models/static-game-data/ShipTypeBuildResources";
+import ShipType from "../models/static-game-data/ShipType";
+import InventoryItem from "../models/InventoryItem";
+import Inventory from "../models/Inventory";
+import System from "../models/static-game-data/System";
+import SystemLink from "../models/static-game-data/SystemLink";
+import StationInventory from "../models/StationInventory";
+import FleetComposition from "../models/FleetComposition";
+import User from "../models/User";
 import { SPEED, createFleet } from "../app";
 import changeShipsOfFleets from "../utils/changeShipsOfFleets";
 import scheduleFleetArrival from "../scheduler/scheduleFleetArrival";

@@ -2,7 +2,8 @@ import _ from "lodash";
 import { v4 } from "uuid";
 
 import { traceIdStore } from "../utils/logger";
-import { Fleet, ModuleRefineryJob } from "../database";
+import Fleet from "../models/Fleet";
+import ModuleRefineryJob from "../models/ModuleRefineryJob";
 import scheduleFleetArrival from "./scheduleFleetArrival";
 import scheduleMiningFinish from "./scheduleMiningFinish";
 import scheduleModuleJobFinish from "./scheduleModuleJobFinish";

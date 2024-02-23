@@ -2,7 +2,8 @@ import { Router } from "express";
 import { paths } from "../schema";
 import setupTransaction from "../utils/setupTransaction";
 import HttpError from "../utils/HttpError";
-import { User, sequelize } from "../database";
+import { sequelize } from "../models/database";
+import User from "../models/User";
 import { serializeUser } from "../serializers";
 import getOrNotFound from "../utils/getOrNotFound";
 

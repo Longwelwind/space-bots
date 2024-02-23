@@ -1,13 +1,11 @@
-import {
-    Fleet,
-    Inventory,
-    Module,
-    ModuleType,
-    Resource,
-    ShipType,
-    System,
-    User,
-} from "./database";
+import ModuleType from "./models/static-game-data/ModuleType";
+import Resource from "./models/static-game-data/Resource";
+import Fleet from "./models/Fleet";
+import ShipType from "./models/static-game-data/ShipType";
+import Inventory from "./models/Inventory";
+import System from "./models/static-game-data/System";
+import Module from "./models/Module";
+import User from "./models/User";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {

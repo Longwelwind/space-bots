@@ -1,11 +1,9 @@
 import { Router } from "express";
-import {
-    ModuleType,
-    ModuleTypeLevel,
-    ModuleTypeRefineryBlueprint,
-    ModuleTypeRefineryBlueprintInputResource,
-    ModuleTypeRefineryBlueprintOutputResource,
-} from "../database";
+import ModuleType from "../models/static-game-data/ModuleType";
+import ModuleTypeRefineryBlueprintOutputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintOutputResource";
+import ModuleTypeRefineryBlueprintInputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintInputResource";
+import ModuleTypeRefineryBlueprint from "../models/static-game-data/ModuleTypeRefineryBlueprint";
+import ModuleTypeLevel from "../models/static-game-data/ModuleTypeLevel";
 import { paths } from "../schema";
 import { serializeModuleType } from "../serializers";
 

@@ -1,26 +1,24 @@
 import path from "path";
 import logger from "../utils/logger";
 import { Router } from "express";
-import {
-    Fleet,
-    FleetComposition,
-    Inventory,
-    InventoryItem,
-    MarketOrder,
-    MarketTransaction,
-    Module,
-    ModuleRefineryJob,
-    ModuleType,
-    ModuleTypeLevel,
-    ModuleTypeRefineryBlueprint,
-    ModuleTypeRefineryBlueprintInputResource,
-    Resource,
-    StationInventory,
-    System,
-    SystemLink,
-    User,
-    sequelize,
-} from "../database";
+import { sequelize } from "../models/database";
+import ModuleType from "../models/static-game-data/ModuleType";
+import Resource from "../models/static-game-data/Resource";
+import Fleet from "../models/Fleet";
+import InventoryItem from "../models/InventoryItem";
+import Inventory from "../models/Inventory";
+import System from "../models/static-game-data/System";
+import ModuleTypeRefineryBlueprintInputResource from "../models/static-game-data/ModuleTypeRefineryBlueprintInputResource";
+import ModuleTypeRefineryBlueprint from "../models/static-game-data/ModuleTypeRefineryBlueprint";
+import ModuleTypeLevel from "../models/static-game-data/ModuleTypeLevel";
+import SystemLink from "../models/static-game-data/SystemLink";
+import MarketTransaction from "../models/MarketTransaction";
+import MarketOrder from "../models/MarketOrder";
+import StationInventory from "../models/StationInventory";
+import FleetComposition from "../models/FleetComposition";
+import ModuleRefineryJob from "../models/ModuleRefineryJob";
+import Module from "../models/Module";
+import User from "../models/User";
 import getOrNotFound from "../utils/getOrNotFound";
 import { paths } from "../schema";
 import {

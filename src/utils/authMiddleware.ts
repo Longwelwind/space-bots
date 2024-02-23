@@ -1,4 +1,4 @@
-import { User } from "../database";
+import User from "../models/User";
 import logger from "./logger";
 import moduleName from "./moduleName";
 import { Request, Response } from "express";

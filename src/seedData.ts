@@ -1,20 +1,18 @@
-import {
-    Fleet,
-    FleetComposition,
-    Inventory,
-    InventoryItem,
-    ModuleType,
-    ModuleTypeLevel,
-    ModuleTypeRefineryBlueprint,
-    ModuleTypeRefineryBlueprintInputResource,
-    ModuleTypeRefineryBlueprintOutputResource,
-    Resource,
-    ShipType,
-    System,
-    SystemLink,
-    User,
-    sync,
-} from "./database";
+import { sync } from "./models/database";
+import ModuleType from "./models/static-game-data/ModuleType";
+import Resource from "./models/static-game-data/Resource";
+import Fleet from "./models/Fleet";
+import ShipType from "./models/static-game-data/ShipType";
+import InventoryItem from "./models/InventoryItem";
+import Inventory from "./models/Inventory";
+import System from "./models/static-game-data/System";
+import ModuleTypeRefineryBlueprintOutputResource from "./models/static-game-data/ModuleTypeRefineryBlueprintOutputResource";
+import ModuleTypeRefineryBlueprintInputResource from "./models/static-game-data/ModuleTypeRefineryBlueprintInputResource";
+import ModuleTypeRefineryBlueprint from "./models/static-game-data/ModuleTypeRefineryBlueprint";
+import ModuleTypeLevel from "./models/static-game-data/ModuleTypeLevel";
+import SystemLink from "./models/static-game-data/SystemLink";
+import FleetComposition from "./models/FleetComposition";
+import User from "./models/User";
 import { UUIDV4_1 } from "./__tests__/helpers";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";

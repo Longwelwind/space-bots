@@ -1,12 +1,10 @@
 import express, { Request, Response } from "express";
-import {
-    Fleet,
-    FleetComposition,
-    Inventory,
-    System,
-    User,
-    sequelize,
-} from "./database";
+import { sequelize } from "./models/database";
+import Fleet from "./models/Fleet";
+import Inventory from "./models/Inventory";
+import System from "./models/static-game-data/System";
+import FleetComposition from "./models/FleetComposition";
+import User from "./models/User";
 import { serializeUser, serializeUserForWebsite } from "./serializers";
 import { Transaction } from "sequelize";
 import admin from "firebase-admin";
