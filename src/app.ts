@@ -28,6 +28,7 @@ import setupTransaction from "./utils/setupTransaction";
 import addSystemsRoutes from "./app/systems";
 import addUsersRoutes from "./app/users";
 import addModuleTypesRoutes from "./app/moduleTypes";
+import addSystemsPlanetsRoutes from "./app/systems.planets";
 
 export const LOGGER = logger(moduleName(__filename));
 
@@ -125,6 +126,7 @@ addFleetsRoutes(gameRouter);
 addUsersRoutes(gameRouter);
 addShipTypesRoutes(gameRouter);
 addSystemsRoutes(gameRouter);
+addSystemsPlanetsRoutes(gameRouter);
 addResourcesRoutes(gameRouter);
 addModuleTypesRoutes(gameRouter);
 
@@ -163,6 +165,10 @@ app.use(
 
 app.use("/v1", nonGameRouter);
 app.use("/v1", gameRouter);
+app.use((req, res, next) => {
+    res.status(404).send();
+    next();
+});
 
 app.use((err, req, res, next) => {
     let httpStatusCode = 0;

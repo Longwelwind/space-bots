@@ -4,6 +4,7 @@ import StationInventory from "../StationInventory";
 import SystemLink from "./SystemLink";
 import Resource from "./Resource";
 import Fleet from "../Fleet";
+import Planet from "./Planet";
 
 @Table({ modelName: "Systems" })
 export default class System extends Model {
@@ -35,6 +36,9 @@ export default class System extends Model {
 
     @HasMany(() => Fleet, "locationSystemId")
     fleets: Fleet[];
+
+    @HasMany(() => Planet)
+    planets: Planet[];
 
     @HasMany(() => SystemLink, "firstSystemId")
     firstSystemLinks: SystemLink[];

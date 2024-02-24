@@ -1564,6 +1564,46 @@ paths:
                                         enum: ["not_found"]
                 "429":
                     $ref: "#/components/responses/429_too_many_requests"
+    /systems/{systemId}/planets:
+        get:
+            summary: Get all planets in a system
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+            responses:
+                "200":
+                    description: All planets returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                id:
+                                                    type: string
+                                                name:
+                                                    type: string
+                                                typeId:
+                                                    type: string
+                "401":
+                    $ref: "#/components/responses/401_unauthorized"
+                "404":
+                    description: System type not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
+                "429":
+                    $ref: "#/components/responses/429_too_many_requests"
     /module-types:
         get:
             summary: Get all modules types

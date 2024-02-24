@@ -6,6 +6,7 @@ import Inventory from "./models/Inventory";
 import System from "./models/static-game-data/System";
 import Module from "./models/Module";
 import User from "./models/User";
+import Planet from "./models/static-game-data/Planet";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
@@ -114,6 +115,14 @@ export function serializeUser(user: User, personal: boolean) {
                   registered: user.registered,
               }
             : {}),
+    };
+}
+
+export function serializePlanet(planet: Planet) {
+    return {
+        id: planet.id,
+        name: planet.name,
+        typeId: planet.typeId,
     };
 }
 

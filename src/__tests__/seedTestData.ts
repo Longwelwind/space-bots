@@ -23,6 +23,8 @@ import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
 import { stat } from "fs";
 import path from "path";
 import logger from "../utils/logger";
+import PlanetType from "../models/static-game-data/PlanetType";
+import Planet from "../models/static-game-data/Planet";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -261,6 +263,34 @@ export default async function seedTestData(testData: TestData) {
         ],
         options,
     );
+
+    await PlanetType.bulkCreate([
+        { id: "continental" },
+        { id: "desertic" },
+        { id: "barren" },
+        { id: "volcanous" },
+        { id: "frozen" },
+        { id: "oceanic" },
+        { id: "tropical" },
+    ]);
+
+    await Planet.bulkCreate([
+        {
+            id: "sol",
+            name: "Sol",
+            systemId: "omega",
+            order: "1",
+            typeId: "continental",
+        },
+        {
+            id: "omega-ii",
+            name: "Omega II",
+            systemId: "omega",
+            order: "2",
+            typeId: "barren",
+        },
+        { id: "Bitara 1", systemId: "bitara", order: "1", typeId: "barren" },
+    ]);
 
     await ShipType.bulkCreate(
         [

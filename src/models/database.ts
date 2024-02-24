@@ -23,6 +23,8 @@ import ShipTypeBuildResources from "./static-game-data/ShipTypeBuildResources";
 import Fleet from "./Fleet";
 import Resource from "./static-game-data/Resource";
 import ModuleType from "./static-game-data/ModuleType";
+import Planet from "./static-game-data/Planet";
+import PlanetType from "./static-game-data/PlanetType";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -35,6 +37,8 @@ export const sequelize = new Sequelize(DATABASE_URL, {
 });
 
 sequelize.addModels([
+    Planet,
+    PlanetType,
     User,
     System,
     Fleet,

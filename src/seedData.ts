@@ -16,6 +16,8 @@ import User from "./models/User";
 import { UUIDV4_1 } from "./__tests__/helpers";
 import logger from "./utils/logger";
 import moduleName from "./utils/moduleName";
+import PlanetType from "./models/static-game-data/PlanetType";
+import Planet from "./models/static-game-data/Planet";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -52,6 +54,20 @@ async function seed() {
 
     await ModuleTypeLevel.bulkCreate([
         { moduleTypeId: "refinery", level: 3, creditCost: 10000, maxJobs: 100 },
+    ]);
+
+    await PlanetType.bulkCreate([
+        { id: "continental" },
+        { id: "desertic" },
+        { id: "barren" },
+        { id: "volcanous" },
+        { id: "frozen" },
+        { id: "oceanic" },
+        { id: "tropical" },
+    ]);
+
+    await Planet.bulkCreate([
+        { id: "Sol", systemId: "omega", order: "1", typeId: "continental" },
     ]);
 
     await ModuleTypeRefineryBlueprint.bulkCreate([
