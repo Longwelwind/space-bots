@@ -56,20 +56,6 @@ async function seed() {
         { moduleTypeId: "refinery", level: 3, creditCost: 10000, maxJobs: 100 },
     ]);
 
-    await PlanetType.bulkCreate([
-        { id: "continental" },
-        { id: "desertic" },
-        { id: "barren" },
-        { id: "volcanous" },
-        { id: "frozen" },
-        { id: "oceanic" },
-        { id: "tropical" },
-    ]);
-
-    await Planet.bulkCreate([
-        { id: "Sol", systemId: "omega", order: "1", typeId: "continental" },
-    ]);
-
     await ModuleTypeRefineryBlueprint.bulkCreate([
         {
             id: "refine-mithril",
@@ -226,6 +212,20 @@ async function seed() {
         { firstSystemId: "plotaria", secondSystemId: "sumlas" },
         { firstSystemId: "corona", secondSystemId: "plotaria" },
         { firstSystemId: "plotaria", secondSystemId: "sigma" },
+    ]);
+
+    await PlanetType.bulkCreate([
+        { id: "continental" },
+        { id: "desertic" },
+        { id: "barren" },
+        { id: "volcanous" },
+        { id: "frozen" },
+        { id: "oceanic" },
+        { id: "tropical" },
+    ]);
+
+    await Planet.bulkCreate([
+        { id: "Sol", systemId: "omega", order: "1", typeId: "continental" },
     ]);
 
     await ShipType.bulkCreate([
