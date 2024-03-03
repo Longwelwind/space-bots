@@ -29,6 +29,7 @@ import addSystemsRoutes from "./app/systems";
 import addUsersRoutes from "./app/users";
 import addModuleTypesRoutes from "./app/moduleTypes";
 import addSystemsPlanetsRoutes from "./app/systems.planets";
+import addSystemsModulesRoutes from "./app/systems.modules";
 
 export const LOGGER = logger(moduleName(__filename));
 
@@ -127,6 +128,7 @@ addUsersRoutes(gameRouter);
 addShipTypesRoutes(gameRouter);
 addSystemsRoutes(gameRouter);
 addSystemsPlanetsRoutes(gameRouter);
+addSystemsModulesRoutes(gameRouter);
 addResourcesRoutes(gameRouter);
 addModuleTypesRoutes(gameRouter);
 
