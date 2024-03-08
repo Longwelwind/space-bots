@@ -1,0 +1,8 @@
+id,name,mining-power,fighting-power,leading-power
+miner-mk-i,Miner Mk. I,1,,
+miner-mk-ii,Miner Mk. II,3,,
+miner-mk-iii,Miner Mk. III,5,,
+miner-mk-iv,Miner Mk. IV,10,,
+miner-mk-v,Miner Mk. V,20,,
+,,,,
+fighter-mk-i,Fighter Mk. I,,1,

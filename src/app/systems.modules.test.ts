@@ -41,7 +41,12 @@ describe("/v1/systems/{systemId}/modules", () => {
 
         expect(res.status).toEqual(200);
         expect(res.body.items).toEqual([
-            { moduleTypeId: "refinery-super-alloy", level: 3, jobs: [] },
+            {
+                moduleTypeId: "refinery-super-alloy",
+                kind: "refinery",
+                level: 3,
+                jobs: [],
+            },
         ]);
     });
 
@@ -93,7 +98,12 @@ describe("/v1/systems/{systemId}/modules", () => {
 
         expect(resMe.body.credits).toBe(1000 - 100);
         expect(resTwo.body.items).toEqual([
-            { moduleTypeId: "refinery-super-alloy", level: 1, jobs: [] },
+            {
+                moduleTypeId: "refinery-super-alloy",
+                kind: "refinery",
+                level: 1,
+                jobs: [],
+            },
         ]);
     });
 
@@ -143,7 +153,12 @@ describe("/v1/systems/{systemId}/modules", () => {
 
         expect(resMe.body.credits).toBe(1000 - 1000);
         expect(resTwo.body.items).toEqual([
-            { moduleTypeId: "refinery-super-alloy", level: 3, jobs: [] },
+            {
+                moduleTypeId: "refinery-super-alloy",
+                kind: "refinery",
+                level: 3,
+                jobs: [],
+            },
         ]);
     });
 
@@ -534,6 +549,221 @@ describe("/v1/systems/{systemId}/modules", () => {
             )
             .set("Authorization", "Bearer longwelwind")
             .send({ blueprintId: "make-mithril", count: 4 });
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toEqual("no_module");
+    });
+
+    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to build ships", async () => {
+        await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 800,
+                },
+            },
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_2,
+                            content: {
+                                aluminium: 100,
+                                zinc: 30,
+                            },
+                        },
+                    },
+                    modules: {
+                        [UUIDV4_1]: [
+                            {
+                                id: UUIDV4_1,
+                                moduleTypeId: "shipyard",
+                                level: 2,
+                            },
+                        ],
+                    },
+                },
+            },
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    locationSystemId: "omega",
+                    ownerUserId: UUIDV4_1,
+                    ships: {
+                        miner: 1,
+                    },
+                    inventoryId: UUIDV4_1,
+                    cargo: {},
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post("/v1/systems/omega/station/modules/shipyard/build-ships")
+            .set("Authorization", "Bearer longwelwind")
+            .send({ shipTypeId: "miner", count: 2, fleetId: UUIDV4_1 });
+
+        expect(res.status).toEqual(200);
+
+        const resStation = await request(app)
+            .get("/v1/systems/omega")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resStation.body.station.cargo).toEqual({
+            zinc: 30,
+            aluminium: 100 - 2 * 10,
+        });
+
+        const resFleet = await request(app)
+            .get("/v1/fleets/" + UUIDV4_1)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resFleet.body.ships).toMatchObject({
+            miner: 3,
+        });
+    });
+
+    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to build a ship not unlocked yet", async () => {
+        await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 800,
+                },
+            },
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_2,
+                            content: {
+                                aluminium: 100,
+                                zinc: 30,
+                            },
+                        },
+                    },
+                    modules: {
+                        [UUIDV4_1]: [
+                            {
+                                id: UUIDV4_1,
+                                moduleTypeId: "shipyard",
+                                level: 2,
+                            },
+                        ],
+                    },
+                },
+            },
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    locationSystemId: "omega",
+                    ownerUserId: UUIDV4_1,
+                    ships: {
+                        miner: 1,
+                    },
+                    inventoryId: UUIDV4_1,
+                    cargo: {},
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post("/v1/systems/omega/station/modules/shipyard/build-ships")
+            .set("Authorization", "Bearer longwelwind")
+            .send({ shipTypeId: "fighter", count: 1, fleetId: UUIDV4_1 });
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toEqual("not_buildable");
+    });
+
+    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to a fleet in an other system", async () => {
+        await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 800,
+                },
+            },
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_2,
+                            content: {
+                                aluminium: 100,
+                                zinc: 30,
+                            },
+                        },
+                    },
+                    modules: {
+                        [UUIDV4_1]: [
+                            {
+                                id: UUIDV4_1,
+                                moduleTypeId: "shipyard",
+                                level: 2,
+                            },
+                        ],
+                    },
+                },
+            },
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    locationSystemId: "mega-torox",
+                    ownerUserId: UUIDV4_1,
+                    ships: {
+                        miner: 1,
+                    },
+                    inventoryId: UUIDV4_1,
+                    cargo: {},
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post("/v1/systems/omega/station/modules/shipyard/build-ships")
+            .set("Authorization", "Bearer longwelwind")
+            .send({ shipTypeId: "miner", count: 2, fleetId: UUIDV4_1 });
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toEqual("fleet_not_reachable");
+    });
+
+    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships without a module", async () => {
+        await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 800,
+                },
+            },
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_2,
+                            content: {
+                                aluminium: 100,
+                                zinc: 30,
+                            },
+                        },
+                    },
+                },
+            },
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    locationSystemId: "omega",
+                    ownerUserId: UUIDV4_1,
+                    ships: {
+                        miner: 1,
+                    },
+                    inventoryId: UUIDV4_1,
+                    cargo: {},
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post("/v1/systems/omega/station/modules/shipyard/build-ships")
+            .set("Authorization", "Bearer longwelwind")
+            .send({ shipTypeId: "miner", count: 2, fleetId: UUIDV4_1 });
 
         expect(res.status).toEqual(400);
         expect(res.body.error).toEqual("no_module");

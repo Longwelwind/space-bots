@@ -20,11 +20,12 @@ import ModuleRefineryJob from "../models/ModuleRefineryJob";
 import Module from "../models/Module";
 import User from "../models/User";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
-import { stat } from "fs";
 import path from "path";
 import logger from "../utils/logger";
 import PlanetType from "../models/static-game-data/PlanetType";
 import Planet from "../models/static-game-data/Planet";
+import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
+import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -98,12 +99,25 @@ export default async function seedTestData(testData: TestData) {
         options,
     );
 
+    await ShipType.bulkCreate(
+        [
+            { id: "miner", name: "Miner", miningPower: 1, price: 100 },
+            { id: "fighter", name: "Fighter", price: 1000 },
+        ],
+        options,
+    );
+
     await ModuleType.bulkCreate(
         [
             {
                 id: "refinery-super-alloy",
                 name: "Refinery of Super Alloy!!",
                 kind: "refinery",
+            },
+            {
+                id: "shipyard",
+                name: "My Shipyard",
+                kind: "shipyard",
             },
         ],
         options,
@@ -171,6 +185,42 @@ export default async function seedTestData(testData: TestData) {
         options,
     );
 
+    await ModuleTypeShipyardBlueprint.bulkCreate(
+        [
+            {
+                id: "build-miner",
+                moduleTypeId: "shipyard",
+                creditCost: 10,
+                unlockLevel: 1,
+                shipTypeId: "miner",
+            },
+            {
+                id: "build-fighter",
+                moduleTypeId: "shipyard",
+                creditCost: 10,
+                unlockLevel: 3,
+                shipTypeId: "fighter",
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeShipyardBlueprintInputResource.bulkCreate(
+        [
+            {
+                moduleTypeShipyardBlueprintId: "build-miner",
+                resourceId: "aluminium",
+                quantity: 10,
+            },
+            {
+                moduleTypeShipyardBlueprintId: "build-fighter",
+                resourceId: "aluminium",
+                quantity: 15,
+            },
+        ],
+        options,
+    );
+
     await ModuleTypeLevel.bulkCreate(
         [
             {
@@ -190,6 +240,21 @@ export default async function seedTestData(testData: TestData) {
                 level: 3,
                 creditCost: 1000,
                 maxJobs: 100,
+            },
+            {
+                moduleTypeId: "shipyard",
+                level: 1,
+                creditCost: 100,
+            },
+            {
+                moduleTypeId: "shipyard",
+                level: 2,
+                creditCost: 40,
+            },
+            {
+                moduleTypeId: "shipyard",
+                level: 3,
+                creditCost: 100,
             },
         ],
         options,
@@ -289,16 +354,13 @@ export default async function seedTestData(testData: TestData) {
             order: "2",
             typeId: "barren",
         },
-        { id: "Bitara 1", systemId: "bitara", order: "1", typeId: "barren" },
+        {
+            id: "Bitara 1",
+            systemId: "bitara",
+            order: "1",
+            typeId: "barren",
+        },
     ]);
-
-    await ShipType.bulkCreate(
-        [
-            { id: "miner", name: "Miner", miningPower: 1, price: 100 },
-            { id: "fighter", name: "Fighter", price: 1000 },
-        ],
-        options,
-    );
 
     await ShipTypeBuildResources.bulkCreate(
         [

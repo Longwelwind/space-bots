@@ -25,6 +25,8 @@ import Resource from "./static-game-data/Resource";
 import ModuleType from "./static-game-data/ModuleType";
 import Planet from "./static-game-data/Planet";
 import PlanetType from "./static-game-data/PlanetType";
+import ModuleTypeShipyardBlueprint from "./static-game-data/ModuleTypeShipyardBlueprint";
+import ModuleTypeShipyardBlueprintInputResource from "./static-game-data/ModuleTypeShipyardBlueprintInputResource";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -57,6 +59,8 @@ sequelize.addModels([
     ModuleTypeRefineryBlueprint,
     ModuleTypeRefineryBlueprintInputResource,
     ModuleTypeRefineryBlueprintOutputResource,
+    ModuleTypeShipyardBlueprint,
+    ModuleTypeShipyardBlueprintInputResource,
     Module,
     ModuleRefineryJob,
 ]);

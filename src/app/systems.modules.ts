@@ -16,6 +16,10 @@ import ModuleTypeRefineryBlueprintInputResource from "../models/static-game-data
 import StationInventory from "../models/StationInventory";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import scheduleModuleJobFinish from "../scheduler/scheduleModuleJobFinish";
+import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
+import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
+import Fleet from "../models/Fleet";
+import changeShipsOfFleets from "../utils/changeShipsOfFleets";
 
 export default function addSystemsModulesRoutes(router: Router) {
     router.get<
@@ -267,6 +271,153 @@ export default function addSystemsModulesRoutes(router: Router) {
                     finishTime: finishTime.toISOString(),
                     duration,
                 });
+            });
+        },
+    );
+
+    router.post<
+        paths["/systems/{systemId}/station/modules/{moduleTypeId}/build-ships"]["post"]["parameters"]["path"],
+        | paths["/systems/{systemId}/station/modules/{moduleTypeId}/build-ships"]["post"]["responses"][200]["content"]["application/json"]
+        | paths["/systems/{systemId}/station/modules/{moduleTypeId}/build-ships"]["post"]["responses"][400]["content"]["application/json"],
+        paths["/systems/{systemId}/station/modules/{moduleTypeId}/build-ships"]["post"]["requestBody"]["content"]["application/json"],
+        { user: User }
+    >(
+        "/systems/:systemId/station/modules/:moduleTypeId/build-ships",
+        async (req, res) => {
+            await setupTransaction(sequelize, async (transaction) => {
+                const system = await getOrNotFound<System>(
+                    System,
+                    req.params["systemId"],
+                    res,
+                );
+
+                const count = req.body.count;
+                const shipTypeId = req.body.shipTypeId;
+                const fleetId = req.body.fleetId;
+
+                const module = await Module.findOne({
+                    where: {
+                        userId: res.locals.user.id,
+                        systemId: system.id,
+                        moduleTypeId: req.params["moduleTypeId"],
+                    },
+                    transaction,
+                    lock: true,
+                });
+
+                if (module == null) {
+                    throw new HttpError(400, "no_module");
+                }
+
+                // Module type is fetched separately since it must not
+                // be locked on it
+                const moduleType = await ModuleType.findOne({
+                    where: {
+                        id: module.moduleTypeId,
+                    },
+                    include: [
+                        {
+                            model: ModuleTypeLevel,
+                            where: { level: module.level },
+                        },
+                    ],
+                    transaction,
+                });
+
+                if (moduleType.kind != "shipyard") {
+                    throw new HttpError(
+                        400,
+                        "not_shipyard",
+                        "Only shipyards can build ships",
+                    );
+                }
+
+                // Get the blueprint
+                const blueprint = await ModuleTypeShipyardBlueprint.findOne({
+                    where: {
+                        shipTypeId: shipTypeId,
+                    },
+                    include: [ModuleTypeShipyardBlueprintInputResource],
+                    transaction,
+                });
+
+                if (blueprint == null) {
+                    throw new HttpError(
+                        404,
+                        "not_found",
+                        "Blueprint not found",
+                    );
+                }
+
+                if (
+                    blueprint.moduleTypeId != moduleType.id ||
+                    blueprint.unlockLevel > module.level
+                ) {
+                    throw new HttpError(400, "not_buildable");
+                }
+
+                // Get the fleet to place the built ships
+                const fleet = await getOrNotFound<Fleet>(Fleet, fleetId, res, {
+                    transaction,
+                    lock: true,
+                });
+
+                if (fleet.locationSystemId != system.id) {
+                    throw new HttpError(400, "fleet_not_reachable");
+                }
+
+                if (fleet.currentAction != "idling") {
+                    throw new HttpError(400, "fleet_busy");
+                }
+
+                // Check if the user has the cost
+                const totalCreditCost = blueprint.creditCost * count;
+                if (res.locals.user.credits <= totalCreditCost) {
+                    throw new HttpError(400, "not_enough_credits");
+                }
+
+                // Remove input resources
+                const inputResources = Object.fromEntries(
+                    blueprint.inputResources.map((r) => [
+                        r.resourceId,
+                        -r.quantity * count,
+                    ]),
+                );
+
+                const stationInventory = await StationInventory.findOne({
+                    where: {
+                        systemId: system.id,
+                        userId: res.locals.user.id,
+                    },
+                    transaction,
+                });
+
+                if (stationInventory == null) {
+                    throw new HttpError(400, "not_enough_resources");
+                }
+
+                const enoughResources = await changeResourcesOfInventories(
+                    { [stationInventory.inventoryId]: inputResources },
+                    transaction,
+                );
+
+                if (!enoughResources) {
+                    throw new HttpError(400, "not_enough_resources");
+                }
+
+                // Remove credits
+                await res.locals.user.decrement("credits", {
+                    by: Number(BigInt(totalCreditCost)),
+                    transaction,
+                });
+
+                // Add the ships to the fleet
+                await changeShipsOfFleets(
+                    { [fleetId]: { [shipTypeId]: count } },
+                    transaction,
+                );
+
+                res.json({});
             });
         },
     );

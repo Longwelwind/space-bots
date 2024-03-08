@@ -7,6 +7,7 @@ import System from "./models/static-game-data/System";
 import Module from "./models/Module";
 import User from "./models/User";
 import Planet from "./models/static-game-data/Planet";
+import { components } from "./schema";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
@@ -132,6 +133,7 @@ export function serializeModule(module: Module) {
         level: module.level,
         ...(module.moduleType.kind == "refinery"
             ? {
+                  kind: "refinery" as const,
                   jobs: module.jobs.map((job) => ({
                       count: job.count,
                       blueprintId: job.moduleTypeRefineryBlueprintId,
@@ -139,7 +141,9 @@ export function serializeModule(module: Module) {
                       finishTime: job.finishTime.toISOString(),
                   })),
               }
-            : {}),
+            : (() => {
+                  throw new Error();
+              })()),
     };
 }
 
@@ -188,7 +192,34 @@ export function serializeModuleType(moduleType: ModuleType) {
                                 }
                               : {}),
                       }
-                    : {}),
+                    : moduleType.kind == "shipyard"
+                      ? {
+                            ...(moduleType.getShipyardBlueprintsForLevel(
+                                level.level,
+                            ).length > 0
+                                ? {
+                                      blueprints: moduleType
+                                          .getShipyardBlueprintsForLevel(
+                                              level.level,
+                                          )
+                                          .map((blueprint) => ({
+                                              credits: blueprint.creditCost,
+                                              inputs: Object.fromEntries(
+                                                  blueprint.inputResources.map(
+                                                      (input) => [
+                                                          input.resourceId,
+                                                          input.quantity,
+                                                      ],
+                                                  ),
+                                              ),
+                                              shipTypeId: blueprint.shipTypeId,
+                                          })),
+                                  }
+                                : {}),
+                        }
+                      : (() => {
+                            throw new Error();
+                        })()),
             })),
     };
 }

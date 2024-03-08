@@ -46,5 +46,6 @@ Database locks are heavily used to prevent race condition from corrupting the da
 
 -   User
 -   Fleet
+-   Module
 -   Market resources (a special custom lock is done for this one)
 -   Inventory

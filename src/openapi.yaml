@@ -1511,6 +1511,68 @@ paths:
                                     error:
                                         type: string
                                         enum: ["not_found"]
+    /systems/{systemId}/station/modules/{moduleTypeId}/build-ships:
+        post:
+            summary: Build ships
+            tags:
+                - Systems
+            parameters:
+                - $ref: "#/components/parameters/systemId"
+                - $ref: "#/components/parameters/moduleTypeId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - count
+                                - shipTypeId
+                                - fleetId
+                            properties:
+                                count:
+                                    type: integer
+                                    minimum: 1
+                                shipTypeId:
+                                    type: string
+                                fleetId:
+                                    type: string
+            responses:
+                "200":
+                    description: Ships built
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "400":
+                    description: Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum:
+                                            [
+                                                "not_enough_resources",
+                                                "not_enough_credits",
+                                                "not_shipyard",
+                                                "not_buildable",
+                                                "fleet_not_reachable",
+                                                "fleet_busy",
+                                                "no_module",
+                                            ]
+                "404":
+                    description: System, module type or fleet not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        enum: ["not_found"]
     /systems/{systemId}/station/modules/build:
         post:
             summary: Build or upgrade a module in this station
@@ -1855,24 +1917,22 @@ components:
         ModuleType:
             oneOf:
                 - $ref: "#/components/schemas/ModuleTypeRefinery"
+                - $ref: "#/components/schemas/ModuleTypeShipyard"
             discriminator:
-                propertyName: type
+                propertyName: kind
                 mapping:
                     refinery: "#/components/schemas/ModuleTypeRefinery"
+                    shipyard: "#/components/schemas/ModuleTypeShipyard"
         ModuleTypeBase:
             type: object
             required:
                 - id
                 - name
-                - kind
             properties:
                 id:
                     type: string
                 name:
                     type: string
-                kind:
-                    type: string
-                    enum: ["refinery"]
                 levels:
                     type: array
                     items:
@@ -1895,8 +1955,12 @@ components:
                 - $ref: "#/components/schemas/ModuleTypeBase"
                 - type: object
                   required:
+                      - kind
                       - levels
                   properties:
+                      kind:
+                          type: string
+                          enum: ["refinery"]
                       levels:
                           type: array
                           items:
@@ -1928,9 +1992,50 @@ components:
                                                   type: number
                                               credits:
                                                   type: number
+        ModuleTypeShipyard:
+            allOf:
+                - $ref: "#/components/schemas/ModuleTypeBase"
+                - type: object
+                  required:
+                      - levels
+                  properties:
+                      kind:
+                          type: string
+                          enum: ["shipyard"]
+                      levels:
+                          type: array
+                          items:
+                              type: object
+                              properties:
+                                  maxJobs:
+                                      type: integer
+                                  blueprints:
+                                      type: array
+                                      items:
+                                          type: object
+                                          required:
+                                              - inputs
+                                              - shipTypeId
+                                              - credits
+                                          properties:
+                                              inputs:
+                                                  type: object
+                                                  additionalProperties:
+                                                      type: integer
+                                                      minimum: 1
+                                              shipTypeId:
+                                                  type: string
+                                              credits:
+                                                  type: number
         Module:
             oneOf:
                 - $ref: "#/components/schemas/ModuleRefinery"
+                - $ref: "#/components/schemas/ModuleShipyard"
+            discriminator:
+                propertyName: kind
+                mapping:
+                    refinery: "#/components/schemas/ModuleRefinery"
+                    shipyard: "#/components/schemas/ModuleShipyard"
         ModuleBase:
             type: object
             required:
@@ -1945,7 +2050,13 @@ components:
             allOf:
                 - $ref: "#/components/schemas/ModuleBase"
                 - type: object
+                  required:
+                      - kind
+                      - jobs
                   properties:
+                      kind:
+                          type: string
+                          enum: ["refinery"]
                       jobs:
                           type: array
                           items:
@@ -1959,3 +2070,13 @@ components:
                                       type: string
                                   finishTime:
                                       type: string
+        ModuleShipyard:
+            allOf:
+                - $ref: "#/components/schemas/ModuleBase"
+                - type: object
+                  required:
+                      - kind
+                  properties:
+                      kind:
+                          type: string
+                          enum: ["shipyard"]

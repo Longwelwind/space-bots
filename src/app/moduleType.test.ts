@@ -69,6 +69,40 @@ describe("/v1/modules-types", () => {
                         },
                     ],
                 },
+                {
+                    id: "shipyard",
+                    name: "My Shipyard",
+                    kind: "shipyard",
+                    levels: [
+                        {
+                            blueprints: [
+                                {
+                                    credits: 10,
+                                    inputs: { aluminium: 10 },
+                                    shipTypeId: "miner",
+                                },
+                            ],
+                            cost: {
+                                credits: 100,
+                            },
+                        },
+                        {
+                            cost: { credits: 40 },
+                        },
+                        {
+                            blueprints: [
+                                {
+                                    credits: 10,
+                                    inputs: { aluminium: 15 },
+                                    shipTypeId: "fighter",
+                                },
+                            ],
+                            cost: {
+                                credits: 100,
+                            },
+                        },
+                    ],
+                },
             ],
         });
     });
