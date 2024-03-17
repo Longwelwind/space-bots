@@ -44,7 +44,7 @@ const rootLogger = createLoggerWinston({
                 return transformedInfo;
             }
         })(),
-        NODE_ENV == "production" ? format.json() : format.simple(),
+        NODE_ENV == "production" ? format.json() : format.prettyPrint(),
     ),
     transports: [new transports.Console()],
 });

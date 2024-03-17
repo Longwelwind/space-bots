@@ -691,6 +691,7 @@ describe("/v1/fleets", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(resThree.body.ships).toEqual({ miner: 5 + 2 });
+        expect(resThree.body.capacity).toEqual((5 + 2) * 10);
 
         const resMe = await request(app)
             .get(`/v1/users/me`)

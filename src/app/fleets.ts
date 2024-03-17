@@ -341,7 +341,15 @@ export default function addFleetsRoutes(router: Router) {
             }
 
             // Add ships to fleet
-            await changeShipsOfFleets({ [fleet.id]: shipsToBuy }, transaction);
+            const { newCargoCapacities } = await changeShipsOfFleets(
+                { [fleet.id]: shipsToBuy },
+                transaction,
+            );
+
+            // await fleet.update(
+            //     { capacity: newCargoCapacities[fleet.id] },
+            //     { transaction },
+            // );
 
             // Check if fleets don't have too much ships
             const totalShips = await FleetComposition.sum("quantity", {
