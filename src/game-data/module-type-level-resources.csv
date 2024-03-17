@@ -1,4 +1,4 @@
-moduleTypeId,level,resource,quantity
+moduleTypeId,level,resourceId,quantity
 foundry,1,iron,10
 foundry,1,copper,10
 foundry,2,steel,5

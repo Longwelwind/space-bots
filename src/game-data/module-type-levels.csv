@@ -1,7 +1,7 @@
-moduleTypeId,level
-foundry,1
-foundry,2
-semiconductor-facility,1
-semiconductor-facility,2
-shipyard,1
-shipyard,2
+moduleTypeId,level,creditCost,maxJobs
+foundry,1,30,1
+foundry,2,,1
+semiconductor-facility,1,,1
+semiconductor-facility,2,,1
+shipyard,1,,
+shipyard,2,,
