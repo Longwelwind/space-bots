@@ -27,6 +27,7 @@ import Planet from "./static-game-data/Planet";
 import PlanetType from "./static-game-data/PlanetType";
 import ModuleTypeShipyardBlueprint from "./static-game-data/ModuleTypeShipyardBlueprint";
 import ModuleTypeShipyardBlueprintInputResource from "./static-game-data/ModuleTypeShipyardBlueprintInputResource";
+import ModuleTypeLevelResource from "./static-game-data/ModuleTypeLevelResource";
 
 const LOGGER = logger(moduleName(__filename));
 
@@ -56,6 +57,7 @@ sequelize.addModels([
     MarketTransaction,
     ModuleType,
     ModuleTypeLevel,
+    ModuleTypeLevelResource,
     ModuleTypeRefineryBlueprint,
     ModuleTypeRefineryBlueprintInputResource,
     ModuleTypeRefineryBlueprintOutputResource,

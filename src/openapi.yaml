@@ -1521,6 +1521,7 @@ paths:
                                             [
                                                 "already_at_max_level",
                                                 "not_enough_credits",
+                                                "not_enough_resources",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"

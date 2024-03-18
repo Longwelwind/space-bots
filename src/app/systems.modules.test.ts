@@ -95,8 +95,14 @@ describe("/v1/systems/{systemId}/modules", () => {
         const resMe = await request(app)
             .get("/v1/users/me")
             .set("Authorization", "Bearer longwelwind");
+        const resStation = await request(app)
+            .get("/v1/systems/omega")
+            .set("Authorization", "Bearer longwelwind");
 
         expect(resMe.body.credits).toBe(1000 - 100);
+        expect(resStation.body.station.cargo).toEqual({
+            zinc: 10 - 3,
+        });
         expect(resTwo.body.items).toEqual([
             {
                 moduleTypeId: "refinery-super-alloy",
@@ -199,6 +205,36 @@ describe("/v1/systems/{systemId}/modules", () => {
 
         expect(res.status).toEqual(400);
         expect(res.body.error).toBe("not_enough_credits");
+    });
+
+    test("POST /v1/systems/{systemId}/station/modules/build try to build a module without enough resources", async () => {
+        await seedTestData({
+            users: {
+                [UUIDV4_1]: {
+                    credits: 800,
+                },
+            },
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_1,
+                            content: {
+                                zinc: 2,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .post("/v1/systems/omega/station/modules/build")
+            .set("Authorization", "Bearer longwelwind")
+            .send({ moduleTypeId: "refinery-super-alloy" });
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toBe("not_enough_resources");
     });
 
     test("POST /v1/systems/{systemId}/station/modules/build try to upgrade a module when already at max level", async () => {
