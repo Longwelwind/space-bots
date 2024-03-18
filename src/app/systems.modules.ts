@@ -20,6 +20,7 @@ import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeSh
 import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
 import Fleet from "../models/Fleet";
 import changeShipsOfFleets from "../utils/changeShipsOfFleets";
+import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
 
 export default function addSystemsModulesRoutes(router: Router) {
     router.get<
@@ -93,6 +94,40 @@ export default function addSystemsModulesRoutes(router: Router) {
                 BigInt(levelToBuild.creditCost)
             ) {
                 throw new HttpError(400, "not_enough_credits");
+            }
+
+            // Spend the resources
+            const resourceCosts = await ModuleTypeLevelResource.findAll({
+                where: {
+                    moduleTypeId: moduleType.id,
+                    level: levelToBuild.level,
+                },
+                transaction,
+            });
+
+            const inputResources = Object.fromEntries(
+                resourceCosts.map((r) => [r.resourceId, -r.quantity]),
+            );
+
+            const stationInventory = await StationInventory.findOne({
+                where: {
+                    systemId: system.id,
+                    userId: res.locals.user.id,
+                },
+                transaction,
+            });
+
+            if (stationInventory == null) {
+                throw new HttpError(400, "not_enough_resources");
+            }
+
+            const enoughResources = await changeResourcesOfInventories(
+                { [stationInventory.inventoryId]: inputResources },
+                transaction,
+            );
+
+            if (!enoughResources) {
+                throw new HttpError(400, "not_enough_resources");
             }
 
             // Make the user pay

@@ -26,6 +26,8 @@ import PlanetType from "../models/static-game-data/PlanetType";
 import Planet from "../models/static-game-data/Planet";
 import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
 import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
+import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
+import { Transaction } from "sequelize";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -255,6 +257,18 @@ export default async function seedTestData(testData: TestData) {
                 moduleTypeId: "shipyard",
                 level: 3,
                 creditCost: 100,
+            },
+        ],
+        options,
+    );
+
+    await ModuleTypeLevelResource.bulkCreate(
+        [
+            {
+                moduleTypeId: "refinery-super-alloy",
+                level: 1,
+                resourceId: "zinc",
+                quantity: 3,
             },
         ],
         options,
