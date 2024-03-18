@@ -1,0 +1,12 @@
+moduleTypeId,level,resource,quantity
+foundry,1,iron,10
+foundry,1,copper,10
+foundry,2,steel,5
+semiconductor-facility,1,steel,10
+semiconductor-facility,1,gold,5
+semiconductor-facility,1,silver,5
+semiconductor-facility,2,gold,10
+semiconductor-facility,2,silver,10
+shipyard,1,steel,20
+shipyard,2,steel,50
+shipyard,2,electronics,10

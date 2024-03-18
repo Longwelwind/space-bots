@@ -1,0 +1,3 @@
+id,moduleTypeId,unlockLevel,time,creditCost,blueprints
+steelmaking,foundry,1,1,10,1 iron = 1 steel
+electronics-production,semiconductor-facility,1,20,10,1 electronics = 1 gold + 2 silver

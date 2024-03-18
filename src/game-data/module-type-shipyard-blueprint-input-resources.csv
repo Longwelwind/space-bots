@@ -1,0 +1,4 @@
+quantity,resourceId,moduleTypeShipyardBlueprintId
+10,steel,miner-i
+30,steel,miner-ii
+5,electronics,miner-ii
