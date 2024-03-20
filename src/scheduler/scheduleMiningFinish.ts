@@ -19,18 +19,8 @@ export default function scheduleMiningFinish(
             const fleet = await Fleet.findByPk(fleetId, {
                 transaction,
                 lock: true,
-                include: [
-                    {
-                        model: FleetComposition,
-                        required: true,
-                        include: [{ model: ShipType, required: true }],
-                    },
-                    { model: Inventory, required: true },
-                ],
+                include: [{ model: Inventory, required: true }],
             });
-
-            // Get resource mined
-            const miningResourceId = fleet.miningResourceId;
 
             if (fleet.currentAction != "mining") {
                 LOGGER.error("fleet's current action is not mining", {
@@ -40,17 +30,8 @@ export default function scheduleMiningFinish(
                 throw new Error();
             }
 
-            // Get mining power of fleet
-            const miningPower = Number(
-                fleet.fleetCompositions.reduce(
-                    (p, c) =>
-                        p + BigInt(c.quantity) * BigInt(c.shipType.miningPower),
-                    BigInt(0),
-                ),
-            );
-
             const resourceMined = {
-                [miningResourceId]: miningPower,
+                [fleet.miningResourceId]: fleet.miningQuantity,
             };
 
             await changeResourcesOfInventories(

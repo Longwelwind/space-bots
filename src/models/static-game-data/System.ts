@@ -5,8 +5,33 @@ import SystemLink from "./SystemLink";
 import Resource from "./Resource";
 import Fleet from "../Fleet";
 import Planet from "./Planet";
+import { ENUM, fn } from "sequelize";
+import miningYields from "./miningYields";
+import miningSizes from "./miningSizes";
 
-@Table({ modelName: "Systems" })
+export const ASTEROID_REFRESH_INTERVAL_SECONDS = 60;
+
+@Table({
+    modelName: "Systems",
+    validate: {
+        miningColumnsAllNullOrNotNull() {
+            if (
+                !(
+                    (this.miningResourceId != null &&
+                        this.miningYield != null &&
+                        this.miningSize != null) ||
+                    (this.miningResourceId == null &&
+                        this.miningYield == null &&
+                        this.miningSize == null)
+                )
+            ) {
+                throw new Error(
+                    "miningResourceId, miningSize and miningYield must all simultaneously be null or non-null ",
+                );
+            }
+        },
+    },
+})
 export default class System extends Model {
     @PrimaryKey
     @Column
@@ -33,6 +58,24 @@ export default class System extends Model {
     @ForeignKey(() => Resource)
     @Column
     declare miningResourceId: string;
+
+    @Column({
+        type: ENUM,
+        values: Object.keys(miningYields),
+    })
+    declare miningYield: keyof typeof miningYields;
+
+    @Column({
+        type: ENUM,
+        values: Object.keys(miningSizes),
+    })
+    declare miningSize: keyof typeof miningSizes;
+
+    @Column({ defaultValue: 0 })
+    declare quantityMinedForCycle: number;
+
+    @Column({ defaultValue: fn("now") })
+    declare firstMiningTimeForCycle: Date;
 
     @HasMany(() => Fleet, "locationSystemId")
     fleets: Fleet[];

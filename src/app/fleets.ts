@@ -8,7 +8,9 @@ import ShipTypeBuildResources from "../models/static-game-data/ShipTypeBuildReso
 import ShipType from "../models/static-game-data/ShipType";
 import InventoryItem from "../models/InventoryItem";
 import Inventory from "../models/Inventory";
-import System from "../models/static-game-data/System";
+import System, {
+    ASTEROID_REFRESH_INTERVAL_SECONDS,
+} from "../models/static-game-data/System";
 import SystemLink from "../models/static-game-data/SystemLink";
 import StationInventory from "../models/StationInventory";
 import FleetComposition from "../models/FleetComposition";
@@ -27,6 +29,8 @@ import path from "path";
 import HttpError from "../utils/HttpError";
 import setupTransaction from "../utils/setupTransaction";
 import { setTimeout } from "timers/promises";
+import miningSizes from "../models/static-game-data/miningSizes";
+import { QueryTypes, col } from "sequelize";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -73,13 +77,74 @@ export default function addFleetsRoutes(router: Router) {
                 throw new HttpError(400, "cant_mine");
             }
 
+            // Compute how much ore the fleet can mine at maximum
+            const queryResult = await sequelize.query(
+                `SELECT
+                    SUM("quantity" * "miningPower") AS "totalMiningPower"
+                FROM
+                    "Fleets"
+                    INNER JOIN "FleetCompositions" ON "FleetCompositions"."fleetId" = "Fleets".id
+                    INNER JOIN "ShipTypes" ON "FleetCompositions"."shipTypeId" = "ShipTypes".id
+                WHERE "Fleets".id = ?`,
+                {
+                    transaction,
+                    type: QueryTypes.SELECT,
+                    replacements: [fleet.id],
+                },
+            );
+            const totalMiningPower = parseInt(
+                queryResult[0]["totalMiningPower"],
+            );
+
+            // Check if the asteroid must be refilled
+            const quantityMinedForCycle =
+                // This logic is only applied for non-infinite asteroids
+                systemOfFleet.miningSize != "ENDLESS" &&
+                Date.now() - systemOfFleet.firstMiningTimeForCycle.getTime() >=
+                    ASTEROID_REFRESH_INTERVAL_SECONDS * 1000
+                    ? 0
+                    : systemOfFleet.quantityMinedForCycle;
+
+            // Check that the asteroid field still can be mined
+            const quantityLeftInAsteroid =
+                systemOfFleet.miningSize != "ENDLESS"
+                    ? miningSizes[systemOfFleet.miningSize] -
+                      quantityMinedForCycle
+                    : // If the asteroid is infinite, consider that there is `totalMiningPower` left to mine
+                      totalMiningPower;
+
+            if (quantityLeftInAsteroid <= 0) {
+                throw new HttpError(400, "asteroid_exhausted");
+            }
+
+            const quantityToMine = Math.min(
+                quantityLeftInAsteroid,
+                totalMiningPower,
+            );
+
             // Start the mining
             const duration = 4; // in seconds
             fleet.currentAction = "mining";
             fleet.miningFinishTime = new Date(Date.now() + duration * 1000);
             fleet.miningResourceId = miningResourceId;
+            fleet.miningQuantity = quantityToMine;
 
             await fleet.save({ transaction });
+
+            // Only register the mined quantity for non-infinite asteroid
+            if (systemOfFleet.miningSize != "ENDLESS") {
+                await systemOfFleet.update(
+                    {
+                        quantityMinedForCycle:
+                            quantityMinedForCycle + quantityToMine,
+                        // If this asteroid is mined for the first time in this cycle,
+                        // note the time in which it was mined
+                        firstMiningTimeForCycle:
+                            quantityMinedForCycle == 0 ? new Date() : undefined,
+                    },
+                    { transaction },
+                );
+            }
 
             scheduleMiningFinish(fleet.id, fleet.miningFinishTime);
 

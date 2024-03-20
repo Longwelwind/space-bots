@@ -6,10 +6,10 @@ import { drop, sequelize, sync, truncate } from "../models/database";
 export default function testSetup() {
     util.inspect.defaultOptions.depth = null;
 
-    jest.useFakeTimers();
-    jest.spyOn(global, "setTimeout");
-
     beforeAll(async () => {
+        jest.useFakeTimers();
+        jest.spyOn(global, "setTimeout");
+
         await drop({ logging: false, cascade: true });
         await sync({ logging: false });
     });
@@ -24,5 +24,7 @@ export default function testSetup() {
 
     afterAll(async () => {
         await sequelize.close();
+
+        jest.useRealTimers();
     });
 }

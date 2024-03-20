@@ -27,7 +27,6 @@ import Planet from "../models/static-game-data/Planet";
 import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
 import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
 import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
-import { Transaction } from "sequelize";
 
 const LOGGER = logger(path.relative(process.cwd(), __filename));
 
@@ -80,6 +79,8 @@ interface TestData {
                     };
                 };
             };
+            quantityMinedForCycle?: number;
+            firstMiningTimeForCycle?: Date;
         };
     };
 }
@@ -89,6 +90,7 @@ export default async function seedTestData(testData: TestData) {
 
     const options = {
         logging: false,
+        validate: true,
     };
     await Resource.bulkCreate(
         [
@@ -290,6 +292,8 @@ export default async function seedTestData(testData: TestData) {
                 x: 2,
                 y: 2,
                 miningResourceId: "aluminium",
+                miningSize: "ENDLESS",
+                miningYield: "VERY_LOW",
             },
             { id: "tashornia", name: "Tashornia", x: 3, y: 1 },
             {
@@ -298,6 +302,8 @@ export default async function seedTestData(testData: TestData) {
                 x: 4,
                 y: 4,
                 miningResourceId: "mithril",
+                miningSize: "ENDLESS",
+                miningYield: "VERY_LOW",
             },
             { id: "bitara", name: "Bitara", x: 6, y: 2 },
             { id: "reticulum", name: "Reticulum", x: 4, y: 0 },
@@ -314,8 +320,20 @@ export default async function seedTestData(testData: TestData) {
                 x: -2,
                 y: 4,
                 miningResourceId: "zirconium",
+                miningSize: "SMALL",
+                miningYield: "VERY_LOW",
             },
-        ],
+        ].map((i) => ({
+            ...i,
+            ...(testData.systems && testData.systems[i.id]
+                ? {
+                      quantityMinedForCycle:
+                          testData.systems[i.id].quantityMinedForCycle,
+                      firstMiningTimeForCycle:
+                          testData.systems[i.id].firstMiningTimeForCycle,
+                  }
+                : {}),
+        })),
         options,
     );
 

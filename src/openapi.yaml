@@ -139,9 +139,38 @@ paths:
                                         type: object
                                         required:
                                             - miningResourceId
+                                            - yield
+                                            - size
                                         properties:
                                             miningResourceId:
                                                 type: string
+                                            yield:
+                                                type: string
+                                                enum:
+                                                    [
+                                                        VERY_LOW,
+                                                        LOW,
+                                                        MEDIUM,
+                                                        HIGH,
+                                                        VERY_HIGH,
+                                                    ]
+                                            size:
+                                                description: |
+                                                    The quantity of reosurces that can be mined.
+                                                    `ENDLESS` means the quantity is infinite, and the asteroid can be mined as much
+                                                type: string
+                                                enum:
+                                                    [
+                                                        SMALL,
+                                                        MEDIUM,
+                                                        BIG,
+                                                        ENDLESS,
+                                                    ]
+                                            quantityLeft:
+                                                description: |
+                                                    The number of resources that can be mined before this asteroid is exhausted.
+                                                    Not present if `size` is `ENDLESS`.
+                                                type: number
                                     station:
                                         type: object
                                         required:
@@ -287,7 +316,12 @@ paths:
                                 properties:
                                     error:
                                         type: string
-                                        enum: ["fleet_busy", "cant_mine"]
+                                        enum:
+                                            [
+                                                "fleet_busy",
+                                                "cant_mine",
+                                                "asteroid_exhausted",
+                                            ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "403":

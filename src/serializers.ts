@@ -3,11 +3,14 @@ import Resource from "./models/static-game-data/Resource";
 import Fleet from "./models/Fleet";
 import ShipType from "./models/static-game-data/ShipType";
 import Inventory from "./models/Inventory";
-import System from "./models/static-game-data/System";
+import System, {
+    ASTEROID_REFRESH_INTERVAL_SECONDS,
+} from "./models/static-game-data/System";
 import Module from "./models/Module";
 import User from "./models/User";
 import Planet from "./models/static-game-data/Planet";
 import { components } from "./schema";
+import miningSizes from "./models/static-game-data/miningSizes";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
@@ -73,6 +76,20 @@ export function serializeSystem(
             ? {
                   asteroid: {
                       miningResourceId: system.miningResourceId,
+                      yield: system.miningYield,
+                      size: system.miningSize,
+                      ...(system.miningSize != "ENDLESS"
+                          ? {
+                                // For `quantityLeft`, check if the asteroid has refreshed or not
+                                quantityLeft:
+                                    Date.now() -
+                                        system.firstMiningTimeForCycle.getTime() >
+                                    ASTEROID_REFRESH_INTERVAL_SECONDS * 1000
+                                        ? miningSizes[system.miningSize]
+                                        : miningSizes[system.miningSize] -
+                                          system.quantityMinedForCycle,
+                            }
+                          : {}),
                   },
               }
             : {}),
