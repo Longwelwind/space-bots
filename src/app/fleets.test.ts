@@ -225,7 +225,7 @@ describe("/v1/fleets", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(resFleet.body.cargo).toEqual({ aluminium: 10 - 3 });
-        console.log(resSystem.body);
+
         expect(resSystem.body.station.cargo).toEqual({ aluminium: 3 });
     });
 
@@ -299,7 +299,7 @@ describe("/v1/fleets", () => {
         );
     });
 
-    test("fleet mine from asteroids", async () => {
+    test("POST /v1/fleets/:fleetId/mine pass", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -310,6 +310,190 @@ describe("/v1/fleets", () => {
                     ships: { miner: 10 },
                 },
             ],
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toBe(200);
+        expect(res.body.duration).toBeGreaterThan(0);
+
+        expect(setTimeout).toHaveBeenCalled();
+
+        const resTwo = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resTwo.status).toEqual(200);
+        expect(resTwo.body.currentAction).toMatchObject({ type: "mining" });
+
+        await jest.runAllTimersAsync();
+
+        const resThree = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resThree.status).toEqual(200);
+        expect(resThree.body.currentAction).toBeNull();
+        expect(resThree.body.cargo).toMatchObject({ zirconium: 10 });
+    });
+
+    test("POST /v1/fleets/:fleetId/mine mine an full asteroid with too much ships", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "corona",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 1200 },
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toBe(200);
+        expect(res.body.duration).toBeGreaterThan(0);
+
+        expect(setTimeout).toHaveBeenCalled();
+
+        const resTwo = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resTwo.status).toEqual(200);
+        expect(resTwo.body.currentAction).toMatchObject({ type: "mining" });
+
+        await jest.runAllTimersAsync();
+
+        const resThree = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resThree.status).toEqual(200);
+        expect(resThree.body.currentAction).toBeNull();
+        expect(resThree.body.cargo).toMatchObject({ zirconium: 1000 });
+    });
+
+    test("POST /v1/fleets/:fleetId/mine mine a partially exhausted asteroid", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "corona",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 1000 },
+                },
+            ],
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 500,
+                },
+            },
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toBe(200);
+        expect(res.body.duration).toBeGreaterThan(0);
+
+        expect(setTimeout).toHaveBeenCalled();
+
+        const resTwo = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resTwo.status).toEqual(200);
+        expect(resTwo.body.currentAction).toMatchObject({ type: "mining" });
+
+        await jest.runAllTimersAsync();
+
+        const resThree = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resThree.status).toEqual(200);
+        expect(resThree.body.currentAction).toBeNull();
+        expect(resThree.body.cargo).toMatchObject({ zirconium: 500 });
+    });
+
+    test("POST /v1/fleets/:fleetId/mine mine an exhausted asteroid", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "corona",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 1200 },
+                },
+            ],
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 1000,
+                },
+            },
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("asteroid_exhausted");
+    });
+
+    test("POST /v1/fleets/:fleetId/mine mine an exhausted asteroid that should not be replenished because not enough time has elapsed", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "corona",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 10 },
+                },
+            ],
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 1000,
+                    firstMiningTimeForCycle: new Date(jest.now() - 30 * 1000),
+                },
+            },
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("asteroid_exhausted");
+    });
+
+    test("POST /v1/fleets/:fleetId/mine mine an exhausted asteroid that should be replenished", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "corona",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 10 },
+                },
+            ],
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 1000,
+                    firstMiningTimeForCycle: new Date(jest.now() - 90 * 1000),
+                },
+            },
         });
 
         const res = await request(app)

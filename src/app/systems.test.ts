@@ -13,7 +13,7 @@ import testSetup from "../__tests__/testSetup";
 describe("/v1/systems", () => {
     testSetup();
 
-    test("GET /v1/systems/{systemId}", async () => {
+    test("GET /v1/systems/{systemId} without an asteroid field", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -31,7 +31,131 @@ describe("/v1/systems", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(res.status).toEqual(200);
-        expect(res.body.station.cargo).toEqual({});
+        expect(res.body).toEqual({
+            id: "omega",
+            name: "Omega",
+            x: 0,
+            y: 0,
+            station: { directSell: true, buyShips: true, cargo: {} },
+            neighboringSystems: [
+                { systemId: "sigma" },
+                { systemId: "tashornia" },
+                { systemId: "mega-torox" },
+                { systemId: "legaka" },
+            ],
+        });
+    });
+
+    test("GET /v1/systems/{systemId} with an asteroid field", async () => {
+        await seedTestData({});
+
+        const res = await request(app)
+            .get("/v1/systems/corona")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            id: "corona",
+            name: "Corona",
+            x: -2,
+            y: 4,
+            asteroid: {
+                miningResourceId: "zirconium",
+                quantityLeft: 1000,
+                size: "SMALL",
+                yield: "VERY_LOW",
+            },
+            neighboringSystems: [{ systemId: "plotaria" }],
+        });
+    });
+
+    test("GET /v1/systems/{systemId} with an asteroid field that is partially exhausted", async () => {
+        await seedTestData({
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 400,
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/corona")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            id: "corona",
+            name: "Corona",
+            x: -2,
+            y: 4,
+            asteroid: {
+                miningResourceId: "zirconium",
+                quantityLeft: 1000 - 400,
+                size: "SMALL",
+                yield: "VERY_LOW",
+            },
+            neighboringSystems: [{ systemId: "plotaria" }],
+        });
+    });
+
+    test("GET /v1/systems/{systemId} with an asteroid field that is exhausted and that shouldn't be refreshed", async () => {
+        await seedTestData({
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 1000,
+                    firstMiningTimeForCycle: new Date(jest.now() - 30 * 1000),
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/corona")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            id: "corona",
+            name: "Corona",
+            x: -2,
+            y: 4,
+            asteroid: {
+                miningResourceId: "zirconium",
+                quantityLeft: 0,
+                size: "SMALL",
+                yield: "VERY_LOW",
+            },
+            neighboringSystems: [{ systemId: "plotaria" }],
+        });
+    });
+
+    test("GET /v1/systems/{systemId} with an asteroid field that is exhausted but that should be refreshed", async () => {
+        await seedTestData({
+            systems: {
+                corona: {
+                    quantityMinedForCycle: 1000,
+                    firstMiningTimeForCycle: new Date(jest.now() - 90 * 1000),
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/corona")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body).toEqual({
+            id: "corona",
+            name: "Corona",
+            x: -2,
+            y: 4,
+            asteroid: {
+                miningResourceId: "zirconium",
+                quantityLeft: 1000,
+                size: "SMALL",
+                yield: "VERY_LOW",
+            },
+            neighboringSystems: [{ systemId: "plotaria" }],
+        });
     });
 
     test("GET /v1/systems/{systemId}/fleets pass", async () => {

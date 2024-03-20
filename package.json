@@ -51,7 +51,7 @@
         "seed-prod-data": "NODE_ENV=production npm exec ts-node src/seedData.ts",
         "seed-dev-data": "npm exec ts-node src/truncateData.ts && npm exec ts-node src/seedData.ts",
         "generate-schema": "openapi-typescript ./src/openapi.yaml -o ./src/schema.d.ts",
-        "test": "npm run generate-schema && NODE_ENV=test DATABASE_HOSTNAME=localhost node node_modules/.bin/jest -i",
+        "test": "npm run generate-schema && NODE_ENV=test DATABASE_HOSTNAME=localhost node node_modules/.bin/jest",
         "format": "prettier . --write"
     }
 }

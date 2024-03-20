@@ -75,4 +75,7 @@ export default class Fleet extends Model {
     @ForeignKey(() => Resource)
     @Column
     declare miningResourceId: string;
+
+    @Column
+    declare miningQuantity: number;
 }
