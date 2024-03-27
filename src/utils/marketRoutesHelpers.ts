@@ -173,27 +173,28 @@ async function tryBuyOrSell(
     } else {
         // Give resources to those who have bought things
         // Fetch inventoryId of the inventory station of all players
-        const inventoryIdsByUserId = Object.fromEntries(
+        const inventoriesByUserId = Object.fromEntries(
             await Promise.all(
                 Object.entries(resourcesToGiveToUsers).map(
                     async ([userId, _q]) => {
                         const stationInventory = await StationInventory.findOne(
                             {
                                 where: { userId, systemId: system.id },
+                                include: [Inventory],
                                 transaction,
                             },
                         );
 
-                        return [userId, stationInventory.inventoryId];
+                        return [userId, stationInventory.inventory];
                     },
                 ),
             ),
         );
 
         await changeResourcesOfInventories(
-            Object.fromEntries(
-                Object.keys(inventoryIdsByUserId).map((userId) => [
-                    inventoryIdsByUserId[userId],
+            new Map(
+                Object.keys(inventoriesByUserId).map((userId) => [
+                    inventoriesByUserId[userId],
                     { [resource.id]: resourcesToGiveToUsers[userId] },
                 ]),
             ),
@@ -216,21 +217,20 @@ async function tryBuyOrSell(
         { transaction },
     );
 
-    const enoughResources = await changeResourcesOfInventories(
-        {
-            [stationInventory.inventoryId]: {
-                [resource.id]: Number(
-                    (type == "buy" ? BigInt(1) : BigInt(-1)) *
-                        quantitiesExchanged,
-                ),
-            },
-        },
+    await changeResourcesOfInventories(
+        new Map([
+            [
+                stationInventory.inventory,
+                {
+                    [resource.id]: Number(
+                        (type == "buy" ? BigInt(1) : BigInt(-1)) *
+                            quantitiesExchanged,
+                    ),
+                },
+            ],
+        ]),
         transaction,
     );
-
-    if (!enoughResources) {
-        throw new HttpError(400, "not_enough_resources");
-    }
 
     if (type == "buy") {
         await (user as User).decrement("credits", {
@@ -372,19 +372,19 @@ export async function marketOrderRoute(
                 userId: res.locals.user.id,
                 systemId: system.id,
             },
+            include: [{ model: Inventory, required: true }],
             transaction,
             lock: true,
         });
 
         if (stationInventory == null) {
-            const inventory = await Inventory.create({ transaction });
             stationInventory = await StationInventory.create(
                 {
                     userId: res.locals.user.id,
                     systemId: system.id,
-                    inventoryId: inventory.id,
+                    inventory: { capacity: -1 },
                 },
-                { transaction },
+                { transaction, include: [Inventory] },
             );
         }
 
@@ -443,18 +443,17 @@ export async function marketOrderRoute(
         if (type == "sell") {
             // In the case of a sell order, the user sends or receives
             // resources
-            const enoughResources = await changeResourcesOfInventories(
-                {
-                    [stationInventory.inventoryId]: {
-                        [resource.id]: -Number(deltaQuantity),
-                    },
-                },
+            await changeResourcesOfInventories(
+                new Map([
+                    [
+                        stationInventory.inventory,
+                        {
+                            [resource.id]: -Number(deltaQuantity),
+                        },
+                    ],
+                ]),
                 transaction,
             );
-
-            if (!enoughResources) {
-                throw new HttpError(400, "not_enough_resources");
-            }
         } else {
             // In the case of a buy order, the user sends or receives
             // credits
@@ -522,19 +521,19 @@ export async function marketInstantRoute(
                 userId: res.locals.user.id,
                 systemId: system.id,
             },
+            include: [{ model: Inventory, required: true }],
             transaction,
             lock: true,
         });
 
         if (stationInventory == null) {
-            const inventory = await Inventory.create({ transaction });
             stationInventory = await StationInventory.create(
                 {
                     userId: res.locals.user.id,
                     systemId: system.id,
-                    inventoryId: inventory.id,
+                    inventory: { capacity: -1 },
                 },
-                { transaction },
+                { transaction, include: [Inventory] },
             );
         }
 

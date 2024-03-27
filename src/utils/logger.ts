@@ -1,5 +1,5 @@
 import { createLogger, format, transports } from "winston";
-import { DATADOG_API_KEY, NODE_ENV } from "../config";
+import { DATADOG_API_KEY, LOG_LEVEL, NODE_ENV } from "../config";
 import { AsyncLocalStorage } from "async_hooks";
 import { v4 } from "uuid";
 
@@ -25,7 +25,9 @@ export function loggerMiddleware(req, res, next) {
 }
 
 const rootLogger = createLogger({
-    level: NODE_ENV == "development" || NODE_ENV == "test" ? "debug" : "info",
+    level:
+        LOG_LEVEL ||
+        (NODE_ENV == "development" || NODE_ENV == "test" ? "debug" : "info"),
     format: format.combine(
         format.timestamp(),
         NODE_ENV != "production" ? format.colorize() : format.label(),

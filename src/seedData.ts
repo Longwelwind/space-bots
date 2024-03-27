@@ -240,7 +240,7 @@ async function seed() {
             token: "longwelwind",
         });
 
-        await Inventory.bulkCreate([{ id: UUIDV4_1 }]);
+        await Inventory.bulkCreate([{ id: UUIDV4_1, capacity: 10 }]);
 
         await InventoryItem.bulkCreate([
             { inventoryId: UUIDV4_1, resourceId: "aluminium", quantity: 10 },

@@ -231,21 +231,20 @@ export default function addFleetsRoutes(router: Router) {
             const resources = Object.fromEntries(resourcesEntries);
 
             // Remove resources of inventory
-            const enoughResource = await changeResourcesOfInventories(
-                {
-                    [fleet.inventoryId.toString()]: Object.fromEntries(
-                        Object.entries(resourcesToSell).map(([r, q]) => [
-                            r,
-                            -q,
-                        ]),
-                    ),
-                },
+            await changeResourcesOfInventories(
+                new Map([
+                    [
+                        fleet.inventory,
+                        Object.fromEntries(
+                            Object.entries(resourcesToSell).map(([r, q]) => [
+                                r,
+                                -q,
+                            ]),
+                        ),
+                    ],
+                ]),
                 transaction,
             );
-
-            if (!enoughResource) {
-                throw new HttpError(400, "not_enough_resources");
-            }
 
             // Add credits to user
             const creditsGained = Object.entries(resourcesToSell).reduce(
@@ -484,29 +483,36 @@ export default function addFleetsRoutes(router: Router) {
                 throw new HttpError(400, "fleet_busy");
             }
 
-            const enoughResources = await changeResourcesOfInventories(
-                {
-                    [fleet.inventoryId]: resourcesChangeFleet,
-                    [targetFleet.inventoryId]: resourcesChangeTarget,
-                },
+            await changeResourcesOfInventories(
+                new Map([
+                    [fleet.inventory, resourcesChangeFleet],
+                    [targetFleet.inventory, resourcesChangeTarget],
+                ]),
                 transaction,
             );
 
-            if (!enoughResources) {
-                throw new HttpError(400, "not_enough_resources");
-            }
-
-            const enoughShips = await changeShipsOfFleets(
-                {
-                    [fleet.id]: shipsChangeFleet,
-                    [targetFleet.id]: shipsChangeTarget,
-                },
-                transaction,
-            );
+            const { enoughShips, newCargoCapacities } =
+                await changeShipsOfFleets(
+                    {
+                        [fleet.id]: shipsChangeFleet,
+                        [targetFleet.id]: shipsChangeTarget,
+                    },
+                    transaction,
+                );
 
             if (!enoughShips) {
                 throw new HttpError(400, "not_enough_ships");
             }
+
+            await Promise.all(
+                [fleet, targetFleet].map(
+                    async (f) =>
+                        await f.inventory.update(
+                            { capacity: newCargoCapacities[f.id] },
+                            { transaction },
+                        ),
+                ),
+            );
 
             res.json({ ...(newFleet ? { newFleetId: targetFleet.id } : {}) });
         });
@@ -582,28 +588,23 @@ export default function addFleetsRoutes(router: Router) {
             });
 
             if (stationInventory == null) {
-                const inventory = await Inventory.create({ transaction });
                 stationInventory = await StationInventory.create(
                     {
                         userId: res.locals.user.id,
                         systemId: systemOfFleet.id,
-                        inventoryId: inventory.id,
+                        inventory: { capacity: -1 },
                     },
-                    { transaction },
+                    { transaction, include: [Inventory] },
                 );
             }
 
-            const enoughResources = await changeResourcesOfInventories(
-                {
-                    [fleet.inventoryId]: resourcesChangeFleet,
-                    [stationInventory.inventoryId]: resourcesChangeStation,
-                },
+            await changeResourcesOfInventories(
+                new Map([
+                    [fleet.inventory, resourcesChangeFleet],
+                    [stationInventory.inventory, resourcesChangeStation],
+                ]),
                 transaction,
             );
-
-            if (!enoughResources) {
-                throw new HttpError(400, "not_enough_resources");
-            }
 
             res.json({});
         });

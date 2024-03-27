@@ -1,14 +1,18 @@
-import { Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import Fleet from "../models/Fleet";
 import FleetComposition from "../models/FleetComposition";
 import asyncSequentialMap from "./asyncSequentialMap";
+import { sequelize } from "../models/database";
 
 export default async function changeShipsOfFleets(
     shipsToChangeOfFleets: {
         [fleetId: string]: { [shipTypeId: string]: number };
     },
     transaction: Transaction,
-): Promise<boolean> {
+): Promise<{
+    enoughShips: boolean;
+    newCargoCapacities: { [fleetId: string]: number };
+}> {
     // Fetch all the related fleet compositions, on the right order
     let fleetCompositionsForFleets = await asyncSequentialMap(
         Object.entries(shipsToChangeOfFleets).sort(
@@ -52,7 +56,7 @@ export default async function changeShipsOfFleets(
     );
 
     if (notEnoughQuantity) {
-        return false;
+        return { enoughShips: false, newCargoCapacities: {} };
     }
 
     // Create new fleet compositions for added quantities for which there is no fleet compositions
@@ -124,5 +128,32 @@ export default async function changeShipsOfFleets(
         transaction,
     });
 
-    return true;
+    // Fetch the new cargo capacity of the fleets
+    const result = await sequelize.query<{ fleetId: string; total: number }>(
+        `
+            SELECT
+                "Fleets"."id" AS "fleetId",
+                SUM("ShipTypes"."cargoCapacity" * "FleetCompositions".quantity) AS total
+            FROM
+                "Fleets"
+                INNER JOIN "FleetCompositions" ON "FleetCompositions"."fleetId" = "Fleets"."id"
+                INNER JOIN "ShipTypes" ON "ShipTypes".id = "FleetCompositions"."shipTypeId"
+            WHERE
+                "Fleets".id IN(?)
+            GROUP BY
+                "Fleets".id
+        `,
+        {
+            transaction,
+            replacements: [Object.keys(shipsToChangeOfFleets)],
+            type: QueryTypes.SELECT,
+        },
+    );
+
+    return {
+        enoughShips: true,
+        newCargoCapacities: Object.fromEntries(
+            result.map(({ fleetId, total }) => [fleetId, total]),
+        ),
+    };
 }

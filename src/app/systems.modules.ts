@@ -21,6 +21,7 @@ import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data
 import Fleet from "../models/Fleet";
 import changeShipsOfFleets from "../utils/changeShipsOfFleets";
 import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
+import Inventory from "../models/Inventory";
 
 export default function addSystemsModulesRoutes(router: Router) {
     router.get<
@@ -114,6 +115,7 @@ export default function addSystemsModulesRoutes(router: Router) {
                     systemId: system.id,
                     userId: res.locals.user.id,
                 },
+                include: [Inventory],
                 transaction,
             });
 
@@ -121,14 +123,10 @@ export default function addSystemsModulesRoutes(router: Router) {
                 throw new HttpError(400, "not_enough_resources");
             }
 
-            const enoughResources = await changeResourcesOfInventories(
-                { [stationInventory.inventoryId]: inputResources },
+            await changeResourcesOfInventories(
+                new Map([[stationInventory.inventory, inputResources]]),
                 transaction,
             );
-
-            if (!enoughResources) {
-                throw new HttpError(400, "not_enough_resources");
-            }
 
             // Make the user pay
             await res.locals.user.decrement("credits", {
@@ -258,6 +256,7 @@ export default function addSystemsModulesRoutes(router: Router) {
                         systemId: system.id,
                         userId: res.locals.user.id,
                     },
+                    include: [Inventory],
                     transaction,
                 });
 
@@ -265,14 +264,10 @@ export default function addSystemsModulesRoutes(router: Router) {
                     throw new HttpError(400, "not_enough_resources");
                 }
 
-                const enoughResources = await changeResourcesOfInventories(
-                    { [stationInventory.inventoryId]: inputResources },
+                await changeResourcesOfInventories(
+                    new Map([[stationInventory.inventory, inputResources]]),
                     transaction,
                 );
-
-                if (!enoughResources) {
-                    throw new HttpError(400, "not_enough_resources");
-                }
 
                 // Remove credits
                 await res.locals.user.decrement("credits", {
@@ -424,6 +419,7 @@ export default function addSystemsModulesRoutes(router: Router) {
                         systemId: system.id,
                         userId: res.locals.user.id,
                     },
+                    include: [Inventory],
                     transaction,
                 });
 
@@ -431,14 +427,10 @@ export default function addSystemsModulesRoutes(router: Router) {
                     throw new HttpError(400, "not_enough_resources");
                 }
 
-                const enoughResources = await changeResourcesOfInventories(
-                    { [stationInventory.inventoryId]: inputResources },
+                await changeResourcesOfInventories(
+                    new Map([[stationInventory.inventory, inputResources]]),
                     transaction,
                 );
-
-                if (!enoughResources) {
-                    throw new HttpError(400, "not_enough_resources");
-                }
 
                 // Remove credits
                 await res.locals.user.decrement("credits", {
@@ -447,9 +439,14 @@ export default function addSystemsModulesRoutes(router: Router) {
                 });
 
                 // Add the ships to the fleet
-                await changeShipsOfFleets(
+                const { newCargoCapacities } = await changeShipsOfFleets(
                     { [fleetId]: { [shipTypeId]: count } },
                     transaction,
+                );
+
+                await fleet.update(
+                    { capacity: newCargoCapacities[fleet.id] },
+                    { transaction },
                 );
 
                 res.json({});

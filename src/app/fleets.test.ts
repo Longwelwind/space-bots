@@ -105,7 +105,9 @@ describe("/v1/fleets", () => {
 
         expect(resSecondFleet.status).toEqual(200);
         expect(resFirstFleet.body.ships).toEqual({ miner: 5 - 2 });
+        expect(resFirstFleet.body.capacity).toEqual(10 * (5 - 2));
         expect(resSecondFleet.body.ships).toEqual({ miner: 2 });
+        expect(resSecondFleet.body.capacity).toEqual(10 * 2);
     });
 
     test("POST /v1/fleets/{fleetId}/transfer should destroy empty fleet", async () => {
@@ -146,11 +148,12 @@ describe("/v1/fleets", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(resFirstFleet.status).toEqual(200);
-        expect(resFirstFleet.body.ships).toMatchObject({ miner: 5 });
+        expect(resFirstFleet.body.ships).toMatchObject({ miner: 4 + 1 });
+        expect(resFirstFleet.body.capacity).toBe(10 * (4 + 1));
         expect(resSecondFleet.status).toEqual(404);
     });
 
-    test("POST /v1/fleets/{fleetId}/transfer should transfer resources and ships to an other fleet", async () => {
+    test("POST /v1/fleets/{fleetId}/transfer should transfer resources and ships to another fleet", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -191,7 +194,45 @@ describe("/v1/fleets", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(resFirstFleet.body.cargo).toEqual({ aluminium: 10 + 3 });
+        expect(resFirstFleet.body.ships).toEqual({ miner: 10 - 2 });
+        expect(resFirstFleet.body.capacity).toEqual(10 * (10 - 2));
         expect(resSecondFleet.body.cargo).toEqual({ aluminium: 9 - 3 });
+        expect(resSecondFleet.body.ships).toEqual({ miner: 5 + 2 });
+        expect(resSecondFleet.body.capacity).toEqual(10 * (5 + 2));
+    });
+
+    test("POST /v1/fleets/{fleetId}/transfer should not exceed the capacity of the fleet", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 10 },
+                    cargo: { aluminium: 96 },
+                },
+                {
+                    id: UUIDV4_2,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_2,
+                    ships: { miner: 5 },
+                    cargo: { aluminium: 40 },
+                },
+            ],
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/transfer`)
+            .set("Authorization", "Bearer longwelwind")
+            .send({
+                targetFleetId: UUIDV4_2,
+                resourcesFromTargetToFleet: { aluminium: 10 },
+            });
+
+        expect(res.status).toEqual(400);
+        expect(res.body.error).toEqual("not_enough_capacity");
     });
 
     test("POST /v1/fleets/{fleetId}/transfer-to-station should transfer resources to the station of the system", async () => {

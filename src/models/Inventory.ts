@@ -9,6 +9,11 @@ export default class Inventory extends Model {
     @Column({ type: UUID, defaultValue: UUIDV4 })
     declare id: string;
 
+    // `-1` means an inventory that can contain an infinite amount
+    // of resources
+    @Column({ allowNull: false })
+    declare capacity: number;
+
     @HasMany(() => InventoryItem, "inventoryId")
     items: InventoryItem[];
 }

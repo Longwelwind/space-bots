@@ -710,7 +710,7 @@ describe("/v1/systems/{systemId}/modules", () => {
         expect(res.body.error).toEqual("not_buildable");
     });
 
-    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to a fleet in an other system", async () => {
+    test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to a fleet in another system", async () => {
         await seedTestData({
             users: {
                 [UUIDV4_1]: {

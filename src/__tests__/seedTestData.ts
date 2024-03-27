@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { checkProductionDatabase } from "../models/database";
+import { checkProductionDatabase, sequelize } from "../models/database";
 import ModuleType from "../models/static-game-data/ModuleType";
 import Resource from "../models/static-game-data/Resource";
 import Fleet from "../models/Fleet";
@@ -105,7 +105,13 @@ export default async function seedTestData(testData: TestData) {
 
     await ShipType.bulkCreate(
         [
-            { id: "miner", name: "Miner", miningPower: 1, price: 100 },
+            {
+                id: "miner",
+                name: "Miner",
+                miningPower: 1,
+                price: 100,
+                cargoCapacity: 10,
+            },
             { id: "fighter", name: "Fighter", price: 1000 },
         ],
         options,
@@ -435,6 +441,8 @@ export default async function seedTestData(testData: TestData) {
             ...(testData.fleets
                 ? testData.fleets.map((fleetTestData) => ({
                       id: fleetTestData.inventoryId,
+                      // This is temporary, updated just after
+                      capacity: -1,
                   }))
                 : []),
             ...(testData.systems
@@ -450,6 +458,7 @@ export default async function seedTestData(testData: TestData) {
                                             stationInventoryTestData,
                                         ]) => ({
                                             id: stationInventoryTestData.inventoryId,
+                                            capacity: -1,
                                         }),
                                     )
                                   : [],
@@ -723,6 +732,29 @@ export default async function seedTestData(testData: TestData) {
                   )
                 : []),
         ],
+        options,
+    );
+
+    // Update the capacity of the fleets' inventories
+    await sequelize.query(
+        `
+        UPDATE
+            "Inventories"
+        SET
+            capacity = total
+        FROM (
+            SELECT
+                "Fleets"."inventoryId" AS "inventoryId",
+                SUM("ShipTypes"."cargoCapacity" * "FleetCompositions".quantity) AS total
+            FROM
+                "Fleets"
+                INNER JOIN "FleetCompositions" ON "FleetCompositions"."fleetId" = "Fleets"."id"
+                INNER JOIN "ShipTypes" ON "ShipTypes".id = "FleetCompositions"."shipTypeId"
+            GROUP BY
+                "Fleets".id) AS "Totals"
+        WHERE
+            "Inventories".id = "Totals"."inventoryId"
+    `,
         options,
     );
 }
