@@ -29,6 +29,7 @@ export function serializeFleet(fleet: Fleet, showCargo = true) {
         ),
         ...(showCargo
             ? {
+                  capacity: fleet.inventory.capacity,
                   cargo: serializeInventory(fleet.inventory),
               }
             : {}),

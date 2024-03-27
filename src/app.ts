@@ -75,14 +75,13 @@ nonGameRouter.post("/users/login", async (req, res) => {
                 })
             )[0];
 
-            const inventory = await Inventory.create({}, { transaction });
             const fleet = await Fleet.create(
                 {
                     ownerUserId: user.id,
                     locationSystemId: startingSystem.id,
-                    inventoryId: inventory.id,
+                    inventory: { capacity: 10 },
                 },
-                { transaction },
+                { transaction, include: [Inventory] },
             );
             await FleetComposition.create(
                 { fleetId: fleet.id, shipTypeId: "miner", quantity: 1 },
@@ -137,10 +136,12 @@ export async function createFleet(
     locationSystemId: string,
     transaction: Transaction,
 ): Promise<Fleet> {
-    const inventory = await Inventory.create({}, { transaction });
+    // When creating a new fleet, set capacity to -1
+    // as the caller of this function must make sure that it
+    // is updated with a proper cargo
     const fleet = await Fleet.create(
-        { ownerUserId, locationSystemId, inventoryId: inventory.id },
-        { transaction },
+        { ownerUserId, locationSystemId, inventory: { capacity: -1 } },
+        { transaction, include: Inventory },
     );
     return fleet;
 }

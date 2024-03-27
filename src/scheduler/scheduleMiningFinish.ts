@@ -35,7 +35,7 @@ export default function scheduleMiningFinish(
             };
 
             await changeResourcesOfInventories(
-                { [fleet.inventoryId]: resourceMined },
+                new Map([[fleet.inventory, resourceMined]]),
                 transaction,
             );
 

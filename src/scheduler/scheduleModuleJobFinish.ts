@@ -1,5 +1,3 @@
-import { LOGGER } from "../app";
-
 import { sequelize } from "../models/database";
 import Fleet from "../models/Fleet";
 import ShipType from "../models/static-game-data/ShipType";
@@ -13,6 +11,10 @@ import Module from "../models/Module";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";
+import logger from "../utils/logger";
+import moduleName from "../utils/moduleName";
+
+const LOGGER = logger(moduleName(__filename));
 
 export default function scheduleModuleJobFinish(
     moduleJobId: string,
@@ -54,14 +56,13 @@ export default function scheduleModuleJobFinish(
                     userId: module.userId,
                     systemId: module.systemId,
                 },
+                include: [{ model: Inventory, required: true }],
                 lock: true,
                 transaction,
             });
 
             await changeResourcesOfInventories(
-                {
-                    [stationInventory.inventoryId]: resourcesToProduce,
-                },
+                new Map([[stationInventory.inventory, resourcesToProduce]]),
                 transaction,
             );
 

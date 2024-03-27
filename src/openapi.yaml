@@ -321,6 +321,7 @@ paths:
                                                 "fleet_busy",
                                                 "cant_mine",
                                                 "asteroid_exhausted",
+                                                "cargo_full",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
@@ -676,9 +677,11 @@ paths:
                                                 "new_fleet_must_have_ships",
                                                 "cant_transfer_from_target_when_creating_fleet",
                                                 "not_enough_resources",
+                                                "not_enough_capacity",
                                                 "not_enough_ships",
                                                 "too_much_ships_in_fleet",
                                                 "not_in_same_location",
+                                                "not_enough_cargo_capacity",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
@@ -749,7 +752,9 @@ paths:
                                             [
                                                 "fleet_busy",
                                                 "not_enough_resources",
+                                                "not_enough_capacity",
                                                 "no_station",
+                                                "not_enough_cargo_capacity",
                                             ]
                 "401":
                     $ref: "#/components/responses/401_unauthorized"

@@ -12,6 +12,9 @@ export default class ShipType extends Model {
     declare name: string;
 
     @Column({ allowNull: false, defaultValue: 0 })
+    declare cargoCapacity: number;
+
+    @Column({ allowNull: false, defaultValue: 0 })
     declare miningPower: number;
 
     @Column({ allowNull: false, defaultValue: 0 })
