@@ -1710,6 +1710,10 @@ paths:
                                             type: string
                                         price:
                                             type: integer
+                                        cargoCapacity:
+                                            type: integer
+                                        miningPower:
+                                            type: integer
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "429":
