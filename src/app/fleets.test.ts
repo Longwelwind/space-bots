@@ -491,6 +491,39 @@ describe("/v1/fleets", () => {
         expect(res.body.error).toBe("asteroid_exhausted");
     });
 
+    test("POST /v1/fleets/:fleetId/mine mine an asteroid with a limited cargo capacity", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "plotaria",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 2 },
+                    cargo: {
+                        aluminium: 16,
+                    },
+                },
+            ],
+        });
+
+        await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/mine`)
+            .set("Authorization", "Bearer longwelwind");
+
+        await jest.runAllTimersAsync();
+
+        const resThree = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resThree.status).toEqual(200);
+        expect(resThree.body.cargo).toMatchObject({
+            aluminium: 16,
+            zirconium: 4,
+        });
+    });
+
     test("POST /v1/fleets/:fleetId/mine mine an exhausted asteroid that should not be replenished because not enough time has elapsed", async () => {
         await seedTestData({
             fleets: [

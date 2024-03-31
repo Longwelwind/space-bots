@@ -11,10 +11,10 @@ import Module from "../models/Module";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";
-import logger from "../utils/logger";
+import createLogger from "../utils/logger";
 import moduleName from "../utils/moduleName";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 export default function scheduleModuleJobFinish(
     moduleJobId: string,
@@ -50,6 +50,8 @@ export default function scheduleModuleJobFinish(
                     r.quantity * moduleRefineryJob.count,
                 ]),
             );
+
+            // Get the current free cargo of the fleet
 
             const stationInventory = await StationInventory.findOne({
                 where: {

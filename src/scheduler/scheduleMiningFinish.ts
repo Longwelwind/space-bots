@@ -37,6 +37,7 @@ export default function scheduleMiningFinish(
             await changeResourcesOfInventories(
                 new Map([[fleet.inventory, resourceMined]]),
                 transaction,
+                true,
             );
 
             fleet.currentAction = "idling";

@@ -319,7 +319,15 @@ export default async function seedTestData(testData: TestData) {
             { id: "fogelius", name: "Fogelius", x: -1, y: -3 },
             { id: "sumlas", name: "Sumlas", x: -3, y: -1 },
             { id: "sigma", name: "Sigma", x: -1, y: 1 },
-            { id: "plotaria", name: "Plotaria", x: -2, y: 2 },
+            {
+                id: "plotaria",
+                name: "Plotaria",
+                x: -2,
+                y: 2,
+                miningResourceId: "zirconium",
+                miningSize: "SMALL",
+                miningYield: "VERY_HIGH",
+            },
             {
                 id: "corona",
                 name: "Corona",
