@@ -24,15 +24,16 @@ import { serializeFleet } from "../serializers";
 import oppositeOfValues from "../utils/oppositeOfValues";
 import mergeByAdding from "../utils/mergeByAdding";
 import _ from "lodash";
-import logger from "../utils/logger";
+import createLogger from "../utils/logger";
 import path from "path";
 import HttpError from "../utils/HttpError";
 import setupTransaction from "../utils/setupTransaction";
 import { setTimeout } from "timers/promises";
 import miningSizes from "../models/static-game-data/miningSizes";
 import { QueryTypes, col } from "sequelize";
+import miningYields from "../models/static-game-data/miningYields";
 
-const LOGGER = logger(path.relative(process.cwd(), __filename));
+const LOGGER = createLogger(path.relative(process.cwd(), __filename));
 
 export default function addFleetsRoutes(router: Router) {
     router.post<
@@ -92,9 +93,9 @@ export default function addFleetsRoutes(router: Router) {
                     replacements: [fleet.id],
                 },
             );
-            const totalMiningPower = parseInt(
-                queryResult[0]["totalMiningPower"],
-            );
+            const totalMiningPower =
+                parseInt(queryResult[0]["totalMiningPower"]) *
+                miningYields[systemOfFleet.miningYield];
 
             // Check if the asteroid must be refilled
             const quantityMinedForCycle =

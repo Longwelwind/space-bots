@@ -14,12 +14,12 @@ import SystemLink from "./models/static-game-data/SystemLink";
 import FleetComposition from "./models/FleetComposition";
 import User from "./models/User";
 import { UUIDV4_1 } from "./__tests__/helpers";
-import logger from "./utils/logger";
+import createLogger from "./utils/logger";
 import moduleName from "./utils/moduleName";
 import PlanetType from "./models/static-game-data/PlanetType";
 import Planet from "./models/static-game-data/Planet";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 const NODE_ENV = process.env.NODE_ENV;
 
