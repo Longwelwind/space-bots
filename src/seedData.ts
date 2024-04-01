@@ -14,7 +14,7 @@ import SystemLink from "./models/static-game-data/SystemLink";
 import FleetComposition from "./models/FleetComposition";
 import User from "./models/User";
 import { UUIDV4_1 } from "./__tests__/helpers";
-import createLogger from "./utils/logger";
+import createLogger from "./utils/createLogger";
 import moduleName from "./utils/moduleName";
 import PlanetType from "./models/static-game-data/PlanetType";
 import Planet from "./models/static-game-data/Planet";

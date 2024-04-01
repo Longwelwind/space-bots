@@ -1,5 +1,5 @@
 import path from "path";
-import logger from "../utils/logger";
+import createLogger from "../utils/createLogger";
 import { Router } from "express";
 import { sequelize } from "../models/database";
 import Resource from "../models/static-game-data/Resource";
@@ -24,7 +24,7 @@ import {
 import paginatedListRoute from "../utils/paginatedListRoute";
 import HttpError from "../utils/HttpError";
 
-const LOGGER = logger(path.relative(process.cwd(), __filename));
+const LOGGER = createLogger(path.relative(process.cwd(), __filename));
 
 export default function addSystemsRoutes(router: Router) {
     router.get<

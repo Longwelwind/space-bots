@@ -24,7 +24,7 @@ import { serializeFleet } from "../serializers";
 import oppositeOfValues from "../utils/oppositeOfValues";
 import mergeByAdding from "../utils/mergeByAdding";
 import _ from "lodash";
-import createLogger from "../utils/logger";
+import createLogger from "../utils/createLogger";
 import path from "path";
 import HttpError from "../utils/HttpError";
 import setupTransaction from "../utils/setupTransaction";

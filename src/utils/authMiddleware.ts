@@ -1,9 +1,9 @@
 import User from "../models/User";
-import logger from "./logger";
+import createLogger from "./createLogger";
 import moduleName from "./moduleName";
 import { Request, Response } from "express";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 export default async function authMiddleware(
     req: Request,

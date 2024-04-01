@@ -1,10 +1,10 @@
 import app from "./app";
 import { launchDelayedTasks } from "./scheduler/delayedTasks";
 import { unscheduleAllDelayedTasks } from "./scheduler/delayedTasks";
-import logger from "./utils/logger";
+import createLogger from "./utils/createLogger";
 import moduleName from "./utils/moduleName";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 process.on("uncaughtException", (err) => {
     LOGGER.error("uncaught exception", err);

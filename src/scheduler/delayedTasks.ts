@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { v4 } from "uuid";
 
-import { traceIdStore } from "../utils/logger";
+import { traceIdStore } from "../utils/createLogger";
 import Fleet from "../models/Fleet";
 import ModuleRefineryJob from "../models/ModuleRefineryJob";
 import scheduleFleetArrival from "./scheduleFleetArrival";
