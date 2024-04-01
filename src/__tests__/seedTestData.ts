@@ -21,14 +21,14 @@ import Module from "../models/Module";
 import User from "../models/User";
 import { UUIDV4_1, UUIDV4_2, UUIDV4_3 } from "./helpers";
 import path from "path";
-import logger from "../utils/logger";
+import createLogger from "../utils/createLogger";
 import PlanetType from "../models/static-game-data/PlanetType";
 import Planet from "../models/static-game-data/Planet";
 import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
 import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
 import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
 
-const LOGGER = logger(path.relative(process.cwd(), __filename));
+const LOGGER = createLogger(path.relative(process.cwd(), __filename));
 
 interface TestData {
     fleets?: {

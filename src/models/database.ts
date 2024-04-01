@@ -1,6 +1,6 @@
 import { DestroyOptions, DropOptions } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
-import logger from "../utils/logger";
+import createLogger from "../utils/createLogger";
 import moduleName from "../utils/moduleName";
 import { DATABASE_URL } from "../config";
 import User from "./User";
@@ -29,7 +29,7 @@ import ModuleTypeShipyardBlueprint from "./static-game-data/ModuleTypeShipyardBl
 import ModuleTypeShipyardBlueprintInputResource from "./static-game-data/ModuleTypeShipyardBlueprintInputResource";
 import ModuleTypeLevelResource from "./static-game-data/ModuleTypeLevelResource";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 // @ts-expect-error Sequelize being sequelize
 export const sequelize = new Sequelize(DATABASE_URL, {

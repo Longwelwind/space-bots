@@ -5,10 +5,10 @@ import Inventory from "../models/Inventory";
 import { sequelize } from "../models/database";
 import _ from "lodash";
 import HttpError from "./HttpError";
-import logger from "./logger";
+import createLogger from "./createLogger";
 import moduleName from "./moduleName";
 
-const LOGGER = logger(moduleName(__filename));
+const LOGGER = createLogger(moduleName(__filename));
 
 export async function changeResourcesOfInventories(
     resourcesToChangeOfInventories: Map<

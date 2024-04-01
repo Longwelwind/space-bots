@@ -18,7 +18,7 @@ import YAML from "yaml";
 import addFleetsRoutes from "./app/fleets";
 import addShipTypesRoutes from "./app/shipTypes";
 import addResourcesRoutes from "./app/resources";
-import logger, { loggerMiddleware } from "./utils/logger";
+import createLogger, { loggerMiddleware } from "./utils/createLogger";
 import moduleName from "./utils/moduleName";
 import HttpError from "./utils/HttpError";
 import { rateLimit } from "express-rate-limit";
@@ -31,7 +31,7 @@ import addModuleTypesRoutes from "./app/moduleTypes";
 import addSystemsPlanetsRoutes from "./app/systems.planets";
 import addSystemsModulesRoutes from "./app/systems.modules";
 
-export const LOGGER = logger(moduleName(__filename));
+export const LOGGER = createLogger(moduleName(__filename));
 
 if (process.env.FIREBASE_API_TOKEN) {
     admin.initializeApp({

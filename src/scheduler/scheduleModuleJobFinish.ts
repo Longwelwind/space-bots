@@ -11,7 +11,7 @@ import Module from "../models/Module";
 import { changeResourcesOfInventories } from "../utils/changeResourcesOfInventories";
 import setupTransaction from "../utils/setupTransaction";
 import { scheduleDelayedTask } from "./delayedTasks";
-import createLogger from "../utils/logger";
+import createLogger from "../utils/createLogger";
 import moduleName from "../utils/moduleName";
 
 const LOGGER = createLogger(moduleName(__filename));
