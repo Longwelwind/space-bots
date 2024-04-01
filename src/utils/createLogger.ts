@@ -3,15 +3,9 @@ import {
     format,
     transports,
 } from "winston";
-import { DATADOG_API_KEY, LOG_LEVEL, NODE_ENV } from "../config";
+import { LOG_LEVEL, NODE_ENV } from "../config";
 import { AsyncLocalStorage } from "async_hooks";
 import { v4 } from "uuid";
-
-const httpTransportOptions = {
-    host: "http-intake.logs.datadoghq.eu",
-    path: `/api/v2/logs?dd-api-key=${DATADOG_API_KEY}&ddsource=nodejs&service=space-bots-api`,
-    ssl: true,
-};
 
 // Generate a unique instance-id each time a server is launched
 export const instanceId = v4();
@@ -52,12 +46,7 @@ const rootLogger = createLoggerWinston({
         })(),
         NODE_ENV == "production" ? format.json() : format.simple(),
     ),
-    transports: [
-        new transports.Console(),
-        ...(NODE_ENV == "production"
-            ? [new transports.Http(httpTransportOptions)]
-            : []),
-    ],
+    transports: [new transports.Console()],
 });
 
 export default function createLogger(module: string) {
