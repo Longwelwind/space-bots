@@ -270,7 +270,7 @@ describe("/v1/fleets", () => {
         expect(resSystem.body.station.cargo).toEqual({ aluminium: 3 });
     });
 
-    test("fleet transfer should not authorize new fleet with no ships", async () => {
+    test("POST /v1/fleets/{fleetId}/transfer should not authorize new fleet with no ships", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -291,7 +291,7 @@ describe("/v1/fleets", () => {
         expect(res.status).toEqual(400);
     });
 
-    test("fleet transfer to create new fleet without tranferring shtsips", async () => {
+    test("POST /v1/fleets/{fleetId}/transfer to create new fleet without tranferring shtsips", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -313,7 +313,7 @@ describe("/v1/fleets", () => {
         expect(res.body.error).toEqual("new_fleet_must_have_ships");
     });
 
-    test("fleet transfer to create new fleet while taking resources from non-existing target", async () => {
+    test("POST /v1/fleets/{fleetId}/transfer to create new fleet while taking resources from non-existing target", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -597,7 +597,7 @@ describe("/v1/fleets", () => {
         expect(resThree.body.cargo).toMatchObject({ zirconium: 10 });
     });
 
-    test("fleet direct-sell", async () => {
+    test("POST /v1/fleets/{fleetId}/direct-sell pass", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -632,7 +632,7 @@ describe("/v1/fleets", () => {
         expect(resThree.body.cargo).toMatchObject({ aluminium: 6 });
     });
 
-    test("fleet direct-sell all ressources", async () => {
+    test("POST /v1/fleets/{fleetId}/direct-sell all ressources", async () => {
         await seedTestData({
             fleets: [
                 {
@@ -661,7 +661,7 @@ describe("/v1/fleets", () => {
         expect(resThree.body.cargo).toEqual({});
     });
 
-    test("fleet buy-ships", async () => {
+    test("POST /v1/fleets/{fleetId}/buy-ships pass", async () => {
         await seedTestData({
             users: {
                 [UUIDV4_1]: {
@@ -699,7 +699,7 @@ describe("/v1/fleets", () => {
         expect(resMe.body.credits).toEqual(1000 - 2 * 100);
     });
 
-    test("fleet buy-ships over 100 ships", async () => {
+    test("POST /v1/fleets/{fleetId}/buy-ships over 100 ships", async () => {
         await seedTestData({
             users: {
                 [UUIDV4_1]: {
