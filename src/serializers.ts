@@ -11,6 +11,8 @@ import User from "./models/User";
 import Planet from "./models/static-game-data/Planet";
 import { components } from "./schema";
 import miningSizes from "./models/static-game-data/miningSizes";
+import ModuleTypeLevel from "./models/static-game-data/ModuleTypeLevel";
+import ModuleTypeLevelResource from "./models/static-game-data/ModuleTypeLevelResource";
 
 export function serializeFleet(fleet: Fleet, showCargo = true) {
     return {
@@ -165,7 +167,10 @@ export function serializeModule(module: Module) {
     };
 }
 
-export function serializeModuleType(moduleType: ModuleType) {
+export function serializeModuleType(
+    moduleType: ModuleType,
+    resourcesToBuildLevels: Map<ModuleTypeLevel, ModuleTypeLevelResource[]>,
+) {
     return {
         id: moduleType.id,
         name: moduleType.name,
@@ -176,6 +181,15 @@ export function serializeModuleType(moduleType: ModuleType) {
                 cost: {
                     ...(level.creditCost > 0
                         ? { credits: level.creditCost }
+                        : {}),
+                    ...(resourcesToBuildLevels.get(level).length > 0
+                        ? {
+                              resources: Object.fromEntries(
+                                  resourcesToBuildLevels
+                                      .get(level)
+                                      .map((r) => [r.resourceId, r.quantity]),
+                              ),
+                          }
                         : {}),
                 },
                 ...(moduleType.kind == "refinery"

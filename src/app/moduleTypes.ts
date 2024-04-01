@@ -8,6 +8,7 @@ import { paths } from "../schema";
 import { serializeModuleType } from "../serializers";
 import ModuleTypeShipyardBlueprint from "../models/static-game-data/ModuleTypeShipyardBlueprint";
 import ModuleTypeShipyardBlueprintInputResource from "../models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
+import ModuleTypeLevelResource from "../models/static-game-data/ModuleTypeLevelResource";
 
 export default function addModuleTypesRoutes(router: Router) {
     router.get<
@@ -33,10 +34,48 @@ export default function addModuleTypesRoutes(router: Router) {
                 ],
             });
 
+            const moduleTypeLevelResources =
+                await ModuleTypeLevelResource.findAll();
+
+            const resourcesMap: Map<
+                ModuleType,
+                Map<ModuleTypeLevel, ModuleTypeLevelResource[]>
+            > = new Map(
+                moduleTypes.map(
+                    (mt) =>
+                        [
+                            mt,
+                            new Map(
+                                mt.levels.map(
+                                    (mtl) =>
+                                        [
+                                            mtl,
+                                            moduleTypeLevelResources.filter(
+                                                (mtlr) =>
+                                                    mtlr.moduleTypeId ==
+                                                        mt.id &&
+                                                    mtlr.level == mtl.level,
+                                            ),
+                                        ] as [
+                                            ModuleTypeLevel,
+                                            ModuleTypeLevelResource[],
+                                        ],
+                                ),
+                            ),
+                        ] as [
+                            ModuleType,
+                            Map<ModuleTypeLevel, ModuleTypeLevelResource[]>,
+                        ],
+                ),
+            );
+
             res.json({
                 // @ts-expect-error I have no idea what is happening
                 items: moduleTypes.map((moduleType) =>
-                    serializeModuleType(moduleType),
+                    serializeModuleType(
+                        moduleType,
+                        resourcesMap.get(moduleType),
+                    ),
                 ),
             });
         } catch (e) {

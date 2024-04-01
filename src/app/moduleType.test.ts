@@ -25,6 +25,9 @@ describe("/v1/modules-types", () => {
                             maxJobs: 1,
                             cost: {
                                 credits: 100,
+                                resources: {
+                                    zinc: 3,
+                                },
                             },
                             blueprints: [
                                 {
