@@ -1,0 +1,5 @@
+id,moduleTypeId,unlockLevel,time,creditCost
+iron_extraction,foundry,1,5,0
+copper_extraction,foundry,1,5,0
+steel_making,foundry,2,5,0
+electronics_production,semiconductor_facility,1,20,10

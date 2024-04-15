@@ -1,0 +1,17 @@
+id,name,price,//Tier
+
+iron_ore,Iron Ore,1,1
+iron,Iron,3,1
+carbon_ore,Carbon Ore,1,1
+carbon,Carbon,3,1
+
+steel,Steel,,2
+copper_ore,Copper Ore,, 1
+copper,Copper,,1
+uranium,Uranium,,
+silver,Silver,,
+platinum,Platinum,,
+mithril,Mithril,,
+gold,Gold,,
+sulfur,Sulfur,,
+electronics,Electronics,,
