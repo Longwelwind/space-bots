@@ -1,1 +1,5 @@
 # Space Bots API
+
+Space Bots is an online, massively multiplayer API-based game where players build space ships, harvest resources from asteroids, trade at space station and explore a galaxy full of opportunities. No UI, no buttons, no sprites, no 3D models, just a REST API! Launch any HTTP client or use the HTTP library of your favourite programming language to start playing Space Bots!
+
+The game features a player-based economy inspired by EVE Online where players harvest resources, refine them, craft ships, fight in uncharted territories, ...

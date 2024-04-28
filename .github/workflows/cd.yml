@@ -1,20 +1,20 @@
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  build-deploy:
-    runs-on: ubuntu-latest
-    env:
-      SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-    steps:
-      - uses: actions/checkout@v1
-      - run: |
-          docker build -t spacebots:${{ github.sha }} .
-      - run: |
-          mkdir -p ~/.ssh && echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 400 ~/.ssh/id_rsa
-      - run: |
-          docker save spacebots:${{ github.sha }} | ssh -o StrictHostKeyChecking=no root@161.35.83.138 "dokku git:load-image space-bots.longwelwind.net spacebots:${{ github.sha }}"
-      - run: |
-          ssh -o StrictHostKeyChecking=no root@161.35.83.138 "docker system prune -a -f --filter \"until=45m\""
+    build-deploy:
+        runs-on: ubuntu-latest
+        env:
+            SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        steps:
+            - uses: actions/checkout@v1
+            - run: |
+                  docker build -t spacebots:${{ github.sha }} .
+            - run: |
+                  mkdir -p ~/.ssh && echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 400 ~/.ssh/id_rsa
+            - run: |
+                  docker save spacebots:${{ github.sha }} | ssh -o StrictHostKeyChecking=no root@161.35.83.138 "dokku git:load-image api.space-bots.longwelwind.net spacebots:${{ github.sha }}"
+            - run: |
+                  ssh -o StrictHostKeyChecking=no root@161.35.83.138 "docker system prune -a -f --filter \"until=45m\""

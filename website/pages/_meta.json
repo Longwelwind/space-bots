@@ -1,0 +1,30 @@
+{
+    "index": {
+        "title": "Home",
+        "type": "page",
+        "display": "hidden"
+    },
+    "docs": {
+        "title": "Docs",
+        "type": "page"
+    },
+    "user": {
+        "title": "User zone",
+        "type": "page"
+    },
+    "register": {
+        "title": "Register",
+        "display": "hidden",
+        "type": "page"
+    },
+    "about": {
+        "title": "About",
+        "type": "page"
+    },
+    "api-reference": {
+        "title": "API Reference ↗",
+        "type": "page",
+        "href": "https://space-bots.stoplight.io/docs/space-bots",
+        "newWindow": true
+    }
+}

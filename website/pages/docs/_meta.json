@@ -1,0 +1,13 @@
+{
+    "introduction": {
+        "title": "Introduction"
+    },
+    "getting-started": "Getting Started",
+    "-- Concepts": {
+        "type": "separator",
+        "title": "Concepts"
+    },
+    "fleets": "Fleets",
+    "asteroid-mining": "Asteroid Mining",
+    "station-modules": "Station Modules"
+}

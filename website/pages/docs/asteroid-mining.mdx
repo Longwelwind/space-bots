@@ -1,0 +1,68 @@
+# Asteroid Mining
+
+Asteroid belts in systems can be mined with mining ships to extract ores, which can then be
+refined into higher-value resources.
+Mining is a nice way for new players to gain credits and to get access to other, more
+lucrative, game activities.
+
+Before mining asteroids, you must first find a system with an asteroid belt. To do so, use
+`GET /systems/{systemId}` and check if the field `asteroid` is set. For example:
+
+```sh
+curl https://space-bots.longwelwind.net/v1/systems/mega-torox \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" | json_pp
+```
+
+```json
+{
+  "id": "mega-torox",
+  // ...
+  "asteroid": {
+    "miningResourceId": "aluminium_ore",
+    "yield": "VERY_LOW",
+    "size": "ENDLESS"
+  }
+}
+```
+
+The asteroid belt in `mega-torox` can be mined for `aluminium_ore`. It has a `VERY_LOW` yield and is `ENDLESS`.
+
+To mine this asteroid belt, move a fleet to this system and call `POST /fleets/{fleetId}/mine`.
+Your fleet will be busy mining the asteroid belt for a few seconds, then the ore will be available in the fleet's cargo.
+
+## Mining power of a fleet
+
+How much ore will be mined from an asteroid is defined by the mining power of a fleet,
+which is the sum of the mining power of all the ships in the fleet.
+
+The mining power of a ship type can be found by calling `GET /ship-types`.
+
+## Yields
+
+The `yield` field of the asteroid belt describes how much ore will be extracted by a mining ship with a mining power of 1.
+There are 5 levels of yields:
+
+| Name | Yield |
+|--|--|
+| `VERY_LOW` | 1 |
+| `LOW` | 2 |
+| `MEDIUM` | 3 |
+| `HIGH` | 4 |
+| `VERY_HIGH` | 5 |
+
+Asteroid belts with higher yields are generally found far from the center of the galaxy.
+
+## Sizes
+
+The `size` field indicates how much ore can be mined from this asteroid before it is exhausted. There are 4 sizes:
+
+| Name | ore |
+|--|--|
+| `SMALL` | 1000 |
+| `MEDIUM` | 2000 |
+| `BIG` | 3000 |
+| `ENDLESS` | Infinite |
+
+`ENDLESS` asteroids are never exhausted and can always be mined for ores.
+
+Asteroid belts replenish every minute, allowing for new ores to be mined.

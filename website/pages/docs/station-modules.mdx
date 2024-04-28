@@ -1,0 +1,72 @@
+# Station Modules
+
+Players can build modules in space station that allows you to perform some tasks like crafting, building ships and others.
+
+Different types of modules can be built inside a space station, each offering different kind of services. To see the list
+of module types that can be built, use `GET /module-types`.
+
+```sh
+curl --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    https://space-bots.longwelwind.net/v1/module-types | json_pp
+```
+
+```json
+{
+    "items": [
+        {
+            "id": "refinery",
+            "name": "Refinery",
+            "kind": "refinery",
+            "levels": [
+                {
+                    "cost": {
+                        "credits": 100
+                    }
+                    // ...
+                },
+                {
+                    "cost": {
+                        "credits": 1000,
+                        "resources": {
+                            "aluminium": 5
+                        }
+                    }
+                    // ...
+                },
+                {
+                    "cost": {
+                        "credits": 10000
+                    }
+                    // ...
+                }
+            ]
+        }
+        // ...
+    ]
+}
+```
+
+A station module type has a kind, as indicated in the `kind` field, which describes what kind of services this
+station module type provides. Refineries (recognized by the value `refinery`), for example, makes it possible to refine resources into higher-value resources.
+
+A station module type has different levels that can be built. All levels must be built in order and each have
+a credit cost, and possibly a list of ressources necessary to be built.
+
+Depending on the kind of module type, the elements in the `levels` field will contain additional information about
+what each level unlocks specifically. For refineries, for example, each level may unlock
+additional blueprints which can be used in this station.
+
+## Building or upgrading a station module
+
+To build a station module, use the endpoint `POST /systems/{systemId}/modules/{moduleType}/build`. Your inventory
+in this station should contain the necessary resources in order to build the station module.
+
+Once you have built the first level of a station module, you can upgrade it to the next level by
+using the same endpoint.
+
+## Interacting with a station module
+
+Each module type kinds have different ways to be interacted with, and the following pages describes them:
+
+-   [Refineries](/docs/station-modules/refineries)
+-   [Shipyards](/docs/station-modules/shipyards)

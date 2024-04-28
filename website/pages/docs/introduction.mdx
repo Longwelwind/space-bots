@@ -1,0 +1,34 @@
+import { Cards, Card } from "nextra/components";
+import { IoWarningOutline } from "react-icons/io5";
+import { CardsIcon } from "nextra/icons";
+import {
+    IoArrowForwardSharp,
+    IoDocumentTextOutline,
+    IoLogoDiscord,
+} from "react-icons/io5";
+
+# Introduction
+
+Welcome to the Space Bots documentation! Get familiar with the game with the following resources:
+
+<Cards>
+    <Card
+        icon={<IoArrowForwardSharp size="xl" />}
+        title="Getting Started"
+        href="/docs/getting-started"
+    />
+    <Card
+        icon={<IoDocumentTextOutline size="xl" />}
+        target="_blank"
+        title="API Reference"
+        href="https://space-bots.stoplight.io/docs/space-bots"
+    >
+        lol
+    </Card>
+    <Card
+        icon={<IoLogoDiscord size="xl" />}
+        target="_blank"
+        title="Discord"
+        href="https://discord.gg/5AmxHqZnqJ"
+    />
+</Cards>

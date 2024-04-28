@@ -7,7 +7,7 @@ servers:
       description: Main server
       variables:
           host:
-              default: https://space-bots.longwelwind.net
+              default: https://api.space-bots.longwelwind.net
 
 security:
     - bearerAuth: []

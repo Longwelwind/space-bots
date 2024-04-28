@@ -1,0 +1,86 @@
+# Fleets
+
+Fleets are player-owned groups of ships. They can travel through systems and are used to do most of the
+economic activities of the game.
+
+## Moving fleets
+
+Fleets can be moved between systems by calling the `POST /v1/fleets/FLEET_ID_1/travel`, and specifying the
+target system in the request's body. A fleet can only travel to an adjacent system of its current location (
+the adjacent systems of a system can be found by calling `GET /v1/systems/{systemId}`).
+
+For example, to move a fleet located in `omega` to `mega-torox`:
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/FLEET_ID_1/travel \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"destinationSystemId": "mega-torox"}' | json_pp
+```
+
+```json
+{
+    "status": "ok",
+    "arrivalTime": "2023-11-05T12:01:22.794Z"
+}
+```
+
+The move will take a certain amount of time depending on the distance between the 2 systems (the position of a
+system can be found with `GET /v1/systems/{systemId}`).
+
+## Cargo
+
+Fleets can carry resources in the cargo of the ships that compose it. The content of a fleet's cargo and its capacity
+can be fetched by getting the info about a fleet. For example, calling `GET /v1/fleets/FLEET_ID_1` returns:
+
+```json
+{
+    "id": "FLEET_ID_1",
+    "capacity": 100,
+    "cargo": {
+        "aluminium": 20
+    }
+    // ...
+}
+```
+
+In this case, this fleet contains 20 `aluminium` and has a capacity of 100.
+
+A fleet's cargo capacity is determined by the ships that compose it. Each ship can carry a certain amount
+of resources based on its ship types (the exact value can be found by calling `GET /v1/ship-types`). The cargo
+capacity of a fleet is the sum of the cargo capacity of all its composing ships.
+
+## Transferring resources and ships
+
+Resources and ships can be transfered between fleets by using `POST /v1/fleets/{fleetId}/transfer`.
+The content of the request describes which ships and resources are transfered.
+For example, calling `/v1/fleets/FLEET_ID_1/transfer` with:
+
+```json
+{
+    "targetFleetId": "FLEET_ID_2",
+    "resourcesFromFleetToTarget": {
+        "aluminium": 10
+    },
+    "resourcesFromTargetToFleet": {
+        "iron": 5
+    },
+    "shipsFromFleetToTarget": {
+        "miner": 20
+    },
+    "shipsFromTargetToFleet": {
+        "fighter": 3
+    }
+}
+```
+
+Will transfer 20 `miner` ships and 10 `aluminium` from `FLEET_ID_1` to `FLEET_ID_2`,
+and transfer 3 `fighter` and 5 `iron` from `FLEET_ID_2` to `FLEET_ID_1`.
+
+Not having enough cargo capacity to achieve this transfer will result in a `not_enough_cargo_capacity` error.
+
+## Split an existing fleet
+
+Splitting an existing fleet can be done using the same endpoint
+described in [the previous section](#transferring-resources-and-ships), but by ommiting
+the `targetFleetId` argument.

@@ -30,6 +30,7 @@ import addUsersRoutes from "./app/users";
 import addModuleTypesRoutes from "./app/moduleTypes";
 import addSystemsPlanetsRoutes from "./app/systems.planets";
 import addSystemsModulesRoutes from "./app/systems.modules";
+import cors from "cors";
 
 export const LOGGER = createLogger(moduleName(__filename));
 
@@ -42,6 +43,15 @@ if (process.env.FIREBASE_API_TOKEN) {
 }
 
 const app = express();
+
+app.use(
+    cors({
+        origin: [
+            "https://space-bots.longwelwind.net",
+            "https://space-bots.stoplight.io",
+        ],
+    }),
+);
 
 export const SPEED = 1; // In units/seconds
 
@@ -158,7 +168,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.static("public"));
 app.use("/openapi.yaml", express.static("src/openapi.yaml"));
 app.use(
     "/docs",

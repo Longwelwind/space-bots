@@ -1,0 +1,216 @@
+import { Callout } from "nextra/components";
+
+# Getting Started
+
+First, head to the [User zone](/user), log in, and get your API key.
+To re-use it in future commands, we'll save it inside a environment variable
+
+```sh
+export SPACE_BOTS_API_TOKEN=spbo_yourtoken
+```
+
+When you logged in for the first time, the game created a fleet for you. List your fleets by doing:
+
+```sh
+curl https://space-bots.longwelwind.net/v1/fleets/my \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" | json_pp
+```
+
+```json
+[
+    {
+        "capacity": 10,
+        "cargo": {},
+        "currentAction": null,
+        "id": "$FLEET_ID",
+        "locationSystemId": "omega",
+        "owner": {
+            "type": "user",
+            "userId": "$USER_ID"
+        },
+        "ships": {
+            "miner": 1
+        }
+    }
+]
+```
+
+Notice that this fleet is composed of a `miner` ship, that is located in the `omega` system and that it doesn't contain anything in their cargo.
+Note down the `id` of this fleet, in the folowing step, it will be refered as `$FLEET_ID`.
+
+You can get information about the system `omega` by executing:
+
+```sh
+curl https://space-bots.longwelwind.net/v1/systems/omega \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    | json_pp
+```
+
+```json
+{
+    "id": "omega",
+    "name": "Omega",
+    "neighboringSystems": [
+        {
+            "systemId": "sigma"
+        },
+        {
+            "systemId": "tashornia"
+        },
+        {
+            "systemId": "mega-torox"
+        },
+        {
+            "systemId": "legaka"
+        }
+    ],
+    "station": {
+        "directSell": true,
+        "buyShips": true,
+        "cargo": {}
+    },
+    "x": 0,
+    "y": 0
+}
+```
+
+Notice that this system has 4 neighbouring systems, and that it doesn't contain any asteroid belt (as seen by the absence of a `asteroid` field)
+
+Let's get information about `mega-torox`, one of the four neighbouring systems:
+
+```sh
+curl https://space-bots.longwelwind.net/v1/systems/mega-torox \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" | json_pp
+```
+
+```json
+{
+    "asteroid": {
+        "miningResourceId": "aluminium"
+    },
+    "id": "mega-torox",
+    "name": "Mega Torox",
+    "neighboringSystems": [
+        {
+            "systemId": "omega"
+        },
+        {
+            "systemId": "duovin-anaon"
+        }
+    ],
+    "x": 2,
+    "y": 2
+}
+```
+
+We can see that this system has an asteroid belt containing `aluminium`!
+
+Let's move our fleet to `mega-torox`:
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/travel \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"destinationSystemId": "mega-torox"}' | json_pp
+```
+
+```json
+{
+    "status": "ok",
+    "arrivalTime": "2023-11-05T12:01:22.794Z"
+}
+```
+
+Your fleet will take some time before arriving to `mega-torox`.
+
+Wait until your fleet has arrived to `mega-torox`, and then order it start mining the asteroid belt:
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/mine \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" | json_pp
+```
+
+```json
+{
+    "status": "ok",
+    "finishTime": "2023-11-04T13:00:44.207Z",
+    "duration": 4
+}
+```
+
+It will also take some time before your fleet has finished mining the asteroid.
+You can check the status of the fleet by executing:
+
+```sh
+curl --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    https://space-bots.longwelwind.net/v1/fleets/{fleet_id} | json_pp
+```
+
+```json
+{
+    "cargo": {
+        "aluminium": 1
+    },
+    "currentAction": null,
+    "id": "$FLEET_ID",
+    "locationSystemId": "mega-torox",
+    "owner": {
+        "type": "user",
+        "userId": "$USER_ID"
+    },
+    "ships": {
+        "miner": 1
+    }
+}
+```
+
+Notice that there is now 1 aluminium in the cargo of your fleet!
+
+Travel back to the original system
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/travel \
+  --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"destinationSystemId": "omega"}' | json_pp
+```
+
+```json
+{
+    "status": "ok",
+    "arrivalTime": "2023-11-05T12:01:22.794Z",
+    "duration": 4
+}
+```
+
+Let's sell this aluminium in the station
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/direct-sell \
+  --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"resources": {"aluminium": 1}}' | json_pp
+```
+
+```json
+{
+    "status": "ok",
+    "creditsGained": 10
+}
+```
+
+<Callout type="info">
+    Resources can also be sold on the player market by calling
+    `/systems/omega/market/resources/aluminium/instant-sell` if others players
+    have placed buy orders, but `/fleets/$FLEET_ID/direct-sell` provides a flat
+    price for which you can sell your resources.
+</Callout>
+
+And voila! You have mined, and sold, your first resources in Space Bots!
+
+But this is not over! There are a lot of things that can be done in Space Bots:
+
+-   You can try to automate mining and selling resources using your favourite language of choice
+-   You can explore the universe to find systems where more valuable resources can be mined
+-   You can start building [Station Modules](/docs/station-modules) to refined the resources you've mined and to
+    start building ships with the refined resources.
