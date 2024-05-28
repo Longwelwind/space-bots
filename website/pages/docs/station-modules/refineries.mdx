@@ -4,4 +4,105 @@ Refineries are station modules that refine resources into higher-values resource
 When listing the different types of modules with `GET /v1/modules-types`, refineries are
 module types with `refinery` as `kind`.
 
-[TODO]
+## Blueprints
+
+When listing the module types,
+
+A blueprint is a recipe that describes how a possible set of input resources
+can be transformed into an output resources. The available blueprints for a given refinery are given
+by the endpoint `GET /v1/module-types`.
+
+```sh
+curl https://space-bots.longwelwind.net/v1/module-types \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    | json_pp
+```
+
+```json
+{
+    "items": [
+        {
+            "id": "simple-refinery",
+            "name": "Simple Refinery",
+            "kind": "refinery",
+            "levels": [
+                {
+                    "cost": {
+                        // ...
+                    },
+                    "maxJobs": 1,
+                    "blueprints": [
+                        {
+                            "id": "refine-mithril",
+                            "credits": 10,
+                            "time": 10,
+                            "inputs": {
+                                "zinc": 25,
+                                "aluminium": 15
+                            },
+                            "outputs": {
+                                "mithril": 10
+                            }
+                        }
+                    ]
+                },
+                {
+                    "cost": {
+                        // ...
+                    },
+                    "maxJobs": 10
+                },
+                {
+                    "cost": {
+                        // ...
+                    },
+                    "maxJobs": 100,
+                    "blueprints": [
+                        {
+                            "id": "refine-mithril-improved",
+                            "credits": 30,
+                            "time": 10,
+                            "inputs": {
+                                "zinc": 20,
+                                "aluminium": 10
+                            },
+                            "outputs": {
+                                "mithril": 15
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        // ...
+    ]
+}
+```
+
+Each level of a refinery gives access to a number of blueprints. Here, for example, building the `simple-refinery`
+gives access to the `refine-mithril` blueprint. Upgrading the refinery to level 3 gives access
+to the `refine-mithril-improved` blueprint.
+
+## Launching jobs
+
+To launch refining jobs, use the `POST /v1/systems/$SYSTEM_ID/station/modules/$MODULE_TYPE_ID/refine` endpoint.
+Specify the id of the blueprint you would like to use. You can launch the same job multiple
+times in one call by specifying `count` (omitting it will launch the job once).
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/systems/$SYSTEM_ID/station/modules/$MODULE_TYPE_ID/refine \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"blueprintId": "$BLUEPRINT_ID", "count": 1}' | json_pp
+```
+
+```json
+{
+    "startTime": "2019-08-24T14:15:22Z",
+    "finishTime": "2019-08-24T14:15:22Z",
+    "duration": 0
+}
+```
+
+Each level of a station module has a field `maxJobs` defining how many jobs your station module can concurrently
+do at the same time.
