@@ -1,3 +1,90 @@
 # Shipyards
 
-[TODO]
+Shipyards are station modules that can build ships to add in your fleets.
+When listing the different types of modules with `GET /v1/modules-types`, refineries are
+module types with `shipyards` as `kind`.
+
+## Blueprints
+
+A blueprint is a recipe that describes what resources are needed to build a ship.
+The available blueprints for a given shipyard are given by the endpoint `GET /v1/module-types`.
+
+```sh
+curl https://space-bots.longwelwind.net/v1/module-types \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    | json_pp
+```
+
+```json
+{
+    "items": [
+        {
+            "id": "small-shipyard",
+            "name": "Small Shipyard",
+            "kind": "shipyard",
+            "levels": [
+                {
+                    "cost": {
+                        "credits": 100
+                    },
+                    "blueprints": [
+                        {
+                            "credits": 50,
+                            "inputs": {
+                                "mithril": 2
+                            },
+                            "shipTypeId": "miner"
+                        }
+                    ]
+                },
+                {
+                    "cost": {
+                        "credits": 1000
+                    }
+                },
+                {
+                    "cost": {
+                        "credits": 10000
+                    },
+                    "blueprints": [
+                        {
+                            "credits": 50,
+                            "inputs": {
+                                "mithril": 4
+                            },
+                            "shipTypeId": "fighter"
+                        }
+                    ]
+                }
+                // ...
+            ]
+        }
+        // ...
+    ]
+}
+```
+
+Each level of a refinery gives access to a number of blueprints. Here, for example, building the `small-shipyard`
+allows you to build `miner` ships, at the cost of 2 `mithril` and 50 credits.
+Upgrading the shipyard to level 3 allows you to build `fighter` ships, at the cost of 4 `mithril` and 50 credits.
+
+## Build ships
+
+To build a ship using your shipyard, use the
+`POST /v1/systems/$SYSTEM_ID/station/modules/$MODULE_TYPE_ID/build-ships` endpoint. Use `shipTypeId` to specify which
+ship you want to build. `fleetId` should be one of your fleet located in the same system as the
+station module. You can build multiple ships with one call, provided you have the credits and the resources,
+by specifying`count`. (1 by default).
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/systems/$SYSTEM_ID/station/modules/$MODULE_TYPE_ID/refine \
+    --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"fleetId": "$FLEET_ID", "shipTypeId": $SHIP_TYPE_ID}' | json_pp
+```
+
+```json
+{
+    "status": "ok"
+}
+```
