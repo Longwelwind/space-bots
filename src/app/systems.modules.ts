@@ -444,9 +444,9 @@ export default function addSystemsModulesRoutes(router: Router) {
                     transaction,
                 );
 
-                await fleet.update(
+                await Inventory.update(
                     { capacity: newCargoCapacities[fleet.id] },
-                    { transaction },
+                    { transaction, where: { id: fleet.inventoryId } },
                 );
 
                 res.json({});

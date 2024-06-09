@@ -346,10 +346,10 @@ export default function addFleetsRoutes(router: Router) {
                 transaction,
             );
 
-            // await fleet.update(
-            //     { capacity: newCargoCapacities[fleet.id] },
-            //     { transaction },
-            // );
+            await Inventory.update(
+                { capacity: newCargoCapacities[fleet.id] },
+                { transaction, where: { id: fleet.inventoryId } },
+            );
 
             // Check if fleets don't have too much ships
             const totalShips = await FleetComposition.sum("quantity", {

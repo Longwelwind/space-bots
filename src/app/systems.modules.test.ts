@@ -656,6 +656,7 @@ describe("/v1/systems/{systemId}/modules", () => {
         expect(resFleet.body.ships).toMatchObject({
             miner: 3,
         });
+        expect(resFleet.body.capacity).toEqual(3 * 10);
     });
 
     test("POST /v1/systems/{systemId}/station/modules/{moduleTypeId}/build-ships to build a ship not unlocked yet", async () => {
