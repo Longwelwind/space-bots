@@ -94,7 +94,7 @@ nonGameRouter.post("/users/login", async (req, res) => {
                 { transaction, include: [Inventory] },
             );
             await FleetComposition.create(
-                { fleetId: fleet.id, shipTypeId: "miner", quantity: 1 },
+                { fleetId: fleet.id, shipTypeId: "miner_mk_i", quantity: 1 },
                 { transaction },
             );
         });

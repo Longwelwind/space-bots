@@ -97,7 +97,7 @@ export default async function seedTestData(testData: TestData) {
             { id: "aluminium", name: "Aluminium", price: 10 },
             { id: "zinc", name: "Zinc", price: 10 },
             { id: "titane", name: "Titane", price: 10 },
-            { id: "zirconium", name: "Zirconium", price: 10 },
+            { id: "zirconium", name: "Zirconium" },
             { id: "mithril", name: "Mithril", price: 10 },
         ],
         options,
@@ -113,6 +113,11 @@ export default async function seedTestData(testData: TestData) {
                 cargoCapacity: 10,
             },
             { id: "fighter", name: "Fighter", price: 1000 },
+            {
+                id: "admiral",
+                name: "Admiral",
+                leadershipValue: 10,
+            },
         ],
         options,
     );

@@ -1,4 +1,5 @@
-//deleted,id,name,kind
-,foundry,Foundry,refinery
-,semiconductor_facility,Semiconductor Facility,refinery
-,shipyard,Shipyard,shipyard
+id,name,kind
+
+foundry,Foundry,refinery
+semiconductor_facility,Semiconductor Facility,refinery
+small_shipyard,Small Shipyard,shipyard

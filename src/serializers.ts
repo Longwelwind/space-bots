@@ -263,6 +263,7 @@ export function serializeShipTypes(shipType: ShipType) {
         price: shipType.price,
         cargoCapacity: shipType.cargoCapacity,
         miningPower: shipType.miningPower,
+        leadershipValue: shipType.leadershipValue,
     };
 }
 

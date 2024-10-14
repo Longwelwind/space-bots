@@ -16,8 +16,8 @@
                  "rotation":0,
                  "visible":true,
                  "width":5000,
-                 "x":-1995.79831932773,
-                 "y":-2562.24712107065
+                 "x":-2500,
+                 "y":-2500
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -2140,6 +2140,17 @@
                  "id":1,
                  "name":"Omega",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"hasStation",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"startingSystem",
+                         "type":"bool",
+                         "value":true
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2156,7 +2167,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"iron"
+                         "value":"iron_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2184,7 +2195,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"copper"
+                         "value":"carbon_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2224,7 +2235,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"copper"
+                         "value":"carbon_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2372,7 +2383,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"iron"
+                         "value":"copper_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2413,7 +2424,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"iron"
+                         "value":"iron_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2453,7 +2464,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"copper"
+                         "value":"carbon_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2493,7 +2504,7 @@
                         {
                          "name":"miningResourceId",
                          "type":"string",
-                         "value":"iron"
+                         "value":"iron_ore"
                         }, 
                         {
                          "name":"miningSize",
@@ -2517,6 +2528,22 @@
                  "id":119,
                  "name":"Las Nirgatis",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"copper_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"ENDLESS"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2553,6 +2580,22 @@
                  "id":183,
                  "name":"Kosa Bantnor",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"aluminium_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"SMALL"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2613,6 +2656,12 @@
                  "id":188,
                  "name":"Vakvana",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"hasStation",
+                         "type":"bool",
+                         "value":true
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2625,6 +2674,22 @@
                  "id":189,
                  "name":"Gill",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"aluminium_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"SMALL"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2686,6 +2751,12 @@
                  "id":210,
                  "name":"Thaaka",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"hasStation",
+                         "type":"bool",
+                         "value":true
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2722,6 +2793,22 @@
                  "id":217,
                  "name":"Yosh",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"iron_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"ENDLESS"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2758,6 +2845,22 @@
                  "id":220,
                  "name":"Munonia",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"gold_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"SMALL"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2782,6 +2885,22 @@
                  "id":222,
                  "name":"Scorpius Coronal",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"gold_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"MEDIUM"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"VERY_LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2806,6 +2925,22 @@
                  "id":224,
                  "name":"Zeta Furlon",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"gold_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"SMALL"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2867,6 +3002,22 @@
                  "id":241,
                  "name":"Avonia",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"miningResourceId",
+                         "type":"string",
+                         "value":"aluminium_ore"
+                        }, 
+                        {
+                         "name":"miningSize",
+                         "type":"string",
+                         "value":"MEDIUM"
+                        }, 
+                        {
+                         "name":"miningYield",
+                         "type":"string",
+                         "value":"LOW"
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -2951,6 +3102,12 @@
                  "id":262,
                  "name":"Tau Mernor",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"hasStation",
+                         "type":"bool",
+                         "value":true
+                        }],
                  "rotation":0,
                  "visible":true,
                  "width":0,
@@ -3061,7 +3218,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":312,
+ "nextobjectid":314,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.9.0",

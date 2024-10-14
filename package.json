@@ -51,7 +51,7 @@
     "scripts": {
         "dev": "nodemon src/main.ts",
         "db-sync": "ts-node src/dbSync.ts",
-        "start": "npm run generate-schema && ts-node src/main.ts",
+        "start": "ts-node src/main.ts",
         "convert-tiled-galaxy": "npm exec ts-node src/galaxy/convertFromTiledToCSV.ts",
         "sync-game-data": "npm exec ts-node src/syncWithGameData.ts",
         "seed-dev-data": "npm exec ts-node src/truncateData.ts && npm exec ts-node src/syncWithGameData.ts && npm exec ts-node src/seedDevData.ts",

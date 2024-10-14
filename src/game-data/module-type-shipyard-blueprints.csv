@@ -1,0 +1,5 @@
+id,moduleTypeId,unlockLevel,creditCost,shipTypeId
+
+build_miner_mk_ii,small_shipyard,1,50,miner_mk_ii
+build_hauler_mk_i,small_shipyard,1,50,hauler_mk_i
+build_admiral_mk_i,small_shipyard,1,50,admiral_mk_i

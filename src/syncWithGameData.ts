@@ -1,4 +1,4 @@
-import { parse } from "csv-parse";
+import { parse } from "csv-parse/sync";
 import ModuleType from "./models/static-game-data/ModuleType";
 import * as fs from "fs";
 import path from "path";
@@ -17,6 +17,8 @@ import ModuleTypeRefineryBlueprintInputResource from "./models/static-game-data/
 import System from "./models/static-game-data/System";
 import SystemLink from "./models/static-game-data/SystemLink";
 import ModuleTypeLevelResource from "./models/static-game-data/ModuleTypeLevelResource";
+import ModuleTypeShipyardBlueprint from "./models/static-game-data/ModuleTypeShipyardBlueprint";
+import ModuleTypeShipyardBlueprintInputResource from "./models/static-game-data/ModuleTypeShipyardBlueprintInputResource";
 
 const FILES: { model: ModelStatic<any>; fileName: string }[] = [
     { model: Resource, fileName: "resources.csv" },
@@ -41,6 +43,14 @@ const FILES: { model: ModelStatic<any>; fileName: string }[] = [
         model: ModuleTypeRefineryBlueprintOutputResource,
         fileName: "module-type-refinery-blueprint-output-resources.csv",
     },
+    {
+        model: ModuleTypeShipyardBlueprint,
+        fileName: "module-type-shipyard-blueprints.csv",
+    },
+    {
+        model: ModuleTypeShipyardBlueprintInputResource,
+        fileName: "module-type-shipyard-blueprint-input-resources.csv",
+    },
 ];
 
 export const LOGGER = createLogger(moduleName(__filename));
@@ -49,57 +59,36 @@ export default async function syncWithGameData() {
     await sequelize.transaction(async (transaction) => {
         for await (const file of FILES) {
             LOGGER.info("Reading file", { filename: file.fileName });
-            const csvPromise = new Promise<(string | null)[][]>(
-                (resolve, reject) => {
-                    fs.readFile(
-                        path.join(__dirname, "game-data", file.fileName),
-                        (err, fileData) => {
-                            if (err) {
-                                reject(err);
-                            }
-                            parse(
-                                fileData,
-                                { cast: true },
-                                function (err, rows) {
-                                    resolve(rows);
-                                },
-                            );
-                        },
-                    );
-                },
+            const fileData = fs.readFileSync(
+                path.join(__dirname, "game-data", file.fileName),
+                { encoding: "utf-8" },
+            );
+            LOGGER.info("Reading file finished");
+
+            const records = parse(fileData, {
+                cast: (value, { quoting }) =>
+                    value == "" ? (quoting ? "" : null) : value,
+                columns: true,
+                skip_empty_lines: true,
+                comment: "#",
+            });
+            LOGGER.info("Parsing file finished");
+
+            const filteredRecords = records.map((record) =>
+                _.pickBy(record, (value, key) => !key.startsWith("#")),
             );
 
-            const rows = await csvPromise;
-            const headerRow = rows[0];
-
-            // Create records from arrays in rows
-            const records = _.drop(rows, 1).map((row) => {
-                return _.fromPairs(
-                    _.zip(headerRow, row).map(([name, value]) => [
-                        name,
-                        value !== "" ? value : null,
-                    ]),
-                );
-            });
-
-            const dataColumns = headerRow.filter((h) => !h.startsWith("//"));
-
-            const toUpsert = records.filter(
+            const toUpsert = filteredRecords.filter(
                 (record) => record.deleted != "true",
             );
 
             try {
-                await file.model.bulkCreate(
-                    toUpsert.map((record) => {
-                        // Remove some fileds not necessary
-                        return _.pick(record, dataColumns);
-                    }),
-                    {
-                        updateOnDuplicate: dataColumns,
-                        transaction,
-                        validate: true,
-                    },
-                );
+                LOGGER.info("Bulk creating records");
+                await file.model.bulkCreate(toUpsert, {
+                    updateOnDuplicate: _.keys(toUpsert[0]),
+                    transaction,
+                    validate: true,
+                });
             } catch (e) {
                 LOGGER.error(e);
                 throw e;

@@ -86,7 +86,7 @@ curl https://space-bots.longwelwind.net/v1/systems/mega-torox \
 ```json
 {
     "asteroid": {
-        "miningResourceId": "aluminium"
+        "miningResourceId": "iron_ore"
     },
     "id": "mega-torox",
     "name": "Mega Torox",
@@ -103,7 +103,7 @@ curl https://space-bots.longwelwind.net/v1/systems/mega-torox \
 }
 ```
 
-We can see that this system has an asteroid belt containing `aluminium`!
+We can see that this system has an asteroid belt containing `iron_ore`!
 
 Let's move our fleet to `mega-torox`:
 
@@ -149,7 +149,7 @@ curl --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
 ```json
 {
     "cargo": {
-        "aluminium": 1
+        "iron_ore": 1
     },
     "currentAction": null,
     "id": "$FLEET_ID",
@@ -164,7 +164,7 @@ curl --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
 }
 ```
 
-Notice that there is now 1 aluminium in the cargo of your fleet!
+Notice that there is now 1 iron ore in the cargo of your fleet!
 
 Travel back to the original system
 
@@ -183,13 +183,13 @@ curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/travel \
 }
 ```
 
-Let's sell this aluminium in the station
+Let's sell this iron ore in the station
 
 ```sh
 curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/direct-sell \
   --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
   -H "Content-Type: application/json" \
-  --data '{"resources": {"aluminium": 1}}' | json_pp
+  --data '{"resources": {"iron_ore": 1}}' | json_pp
 ```
 
 ```json
@@ -201,16 +201,28 @@ curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/direct-sell 
 
 <Callout type="info">
     Resources can also be sold on the player market by calling
-    `/systems/omega/market/resources/aluminium/instant-sell` if others players
+    `/systems/omega/market/resources/iron_ore/instant-sell` if others players
     have placed buy orders, but `/fleets/$FLEET_ID/direct-sell` provides a flat
     price for which you can sell your resources.
 </Callout>
 
 And voila! You have mined, and sold, your first resources in Space Bots!
 
+You can repeat this process a few times to get more credits. Once you have 5 credits, you can
+buy an other mining ship:
+
+```sh
+curl -X POST https://space-bots.longwelwind.net/v1/fleets/$FLEET_ID/buy-ships \
+  --header "Authorization: Bearer $SPACE_BOTS_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"shipsToBuy": {"miner_mk_i": 1}}' | json_pp
+```
+
+Your fleet is now composed of 2 `miner_mk_i` ships, allowing you to mine twice as much ores from an asteroid!
+
 But this is not over! There are a lot of things that can be done in Space Bots:
 
--   You can try to automate mining and selling resources using your favourite language of choice
+-   You can automate mining and selling resources using your favourite language of choice
 -   You can explore the universe to find systems where more valuable resources can be mined
--   You can start building [Station Modules](/docs/station-modules) to refined the resources you've mined and to
+-   You can start building [Station Modules](/docs/station-modules) to refine the resources you've mined and to
     start building ships with the refined resources.

@@ -1,0 +1,8 @@
+id,name,cargoCapacity,miningPower,fightingPower,leadershipValue,price
+
+miner_mk_i,Miner Mk I,10,1,0,0,5
+miner_mk_ii,Miner Mk II,10,2,0,0,
+
+hauler_mk_i,Hauler Mk I,50,0,0,0,
+
+admiral_mk_i,Admiral Mk I,0,0,0,11,

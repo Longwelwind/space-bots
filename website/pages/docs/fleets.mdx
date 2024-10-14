@@ -28,6 +28,15 @@ curl -X POST https://space-bots.longwelwind.net/v1/fleets/FLEET_ID_1/travel \
 The move will take a certain amount of time depending on the distance between the 2 systems (the position of a
 system can be found with `GET /v1/systems/{systemId}`).
 
+## Fleet size
+
+The maximum number of ships a fleet can have is equal to the highest `leadershipValue` of all ships that composes
+this fleet.
+For example, having one `admiral_mk_1` (which has a `leadershipValue` of 11) in a fleet allows it to have 11 ships.
+Having multiple `admiral_mk_1` in your fleet will not increase the ship limit.
+
+The base ship limit is 5.
+
 ## Cargo
 
 Fleets can carry resources in the cargo of the ships that compose it. The content of a fleet's cargo and its capacity

@@ -1710,9 +1710,15 @@ paths:
                                             type: string
                                         price:
                                             type: integer
+                                            nullable: true
+                                            description: |-
+                                                A value other than null means this ship type can be bought at a space station using POST /fleets/{fleetId}/buy-ships at this price.
+                                                A null value means this ship type can't be bought.
                                         cargoCapacity:
                                             type: integer
                                         miningPower:
+                                            type: integer
+                                        leadershipValue:
                                             type: integer
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
@@ -1739,6 +1745,10 @@ paths:
                                             type: string
                                         price:
                                             type: integer
+                                            nullable: true
+                                            description: |-
+                                                The price at which this resource can be sold in a station.
+                                                A null value means this resource can't be sold.
                 "401":
                     $ref: "#/components/responses/401_unauthorized"
                 "429":

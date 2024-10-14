@@ -3,7 +3,6 @@ import { writeFile } from "fs/promises";
 import { readFile } from "fs/promises";
 import _ from "lodash";
 import path from "path";
-import { sys } from "typescript";
 
 interface TiledMap {
     layers: TiledLayer[];
@@ -32,16 +31,21 @@ async function convertFromTiledToCSV() {
         .objects.map((d) => {
             return {
                 id: d.name.toLowerCase().replace(" ", "-"),
-                x: d.x,
-                y: d.y,
+                x: Math.round(d.x),
+                y: Math.round(d.y),
                 name: d.name,
                 miningResourceId: d.properties?.find(
                     (p) => p.name == "miningResourceId",
-                ).value,
+                )?.value,
                 miningSize: d.properties?.find((p) => p.name == "miningSize")
-                    .value,
+                    ?.value,
                 miningYield: d.properties?.find((p) => p.name == "miningYield")
-                    .value,
+                    ?.value,
+                startingSystem: d.properties?.find(
+                    (p) => p.name == "startingSystem",
+                )?.value,
+                hasStation: d.properties?.find((p) => p.name == "hasStation")
+                    ?.value,
             };
         });
 
@@ -92,4 +96,4 @@ async function convertFromTiledToCSV() {
     );
 }
 
-convertFromTiledToCSV();
+void convertFromTiledToCSV();
