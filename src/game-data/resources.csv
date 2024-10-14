@@ -1,17 +1,16 @@
-id,name,price,//Tier
+id,name,price,#Description
 
-iron_ore,Iron Ore,1,1
-iron,Iron,3,1
-carbon_ore,Carbon Ore,1,1
-carbon,Carbon,3,1
-
-steel,Steel,,2
-copper_ore,Copper Ore,, 1
-copper,Copper,,1
-uranium,Uranium,,
-silver,Silver,,
-platinum,Platinum,,
-mithril,Mithril,,
+# Ores and metals
+iron_ore,Iron Ore,1,Basic construction material
+iron,Iron,,Basic construction material
+carbon_ore,Carbon Ore,1,Basic Construction Material
+carbon,Carbon,,Basic Construction Material
+steel,Steel,,
+aluminium_ore,Aluminium Ore,1,Basic construction material
+aluminium,Aluminium,,Basic construction material
+copper_ore,Copper Ore,1,Basic Construction Material
+copper,Copper,,Basic Construction Material
+gold_ore,Gold Ore,1,Basic Construction Material
 gold,Gold,,
-sulfur,Sulfur,,
+
 electronics,Electronics,,

@@ -3,6 +3,9 @@ import Fleet from "../models/Fleet";
 import FleetComposition from "../models/FleetComposition";
 import asyncSequentialMap from "./asyncSequentialMap";
 import { sequelize } from "../models/database";
+import { BASE_MAX_FLEET_SIZE } from "../app/gameConstants";
+import HttpError from "./HttpError";
+import _ from "lodash";
 
 export default async function changeShipsOfFleets(
     shipsToChangeOfFleets: {
@@ -126,6 +129,51 @@ export default async function changeShipsOfFleets(
     await Fleet.destroy({
         where: { id: fleetIdsToBeDestroyed },
         transaction,
+    });
+
+    if (fleetIdsToBeDestroyed.length > 0) {
+        await Fleet.destroy({
+            where: { id: fleetIdsToBeDestroyed },
+            transaction,
+        });
+    }
+
+    const fleetIdsLeft = _.difference(
+        _.keys(shipsToChangeOfFleets),
+        fleetIdsToBeDestroyed,
+    );
+
+    // Check if the size of the fleets are valid
+    const resultFleetMaxShips = await sequelize.query<{
+        fleetId: string;
+        fleetSize: number;
+        fleetLeadershipValue: number;
+    }>(
+        `
+            SELECT
+                "Fleets"."id" AS "fleetId",
+                SUM("FleetCompositions"."quantity") "fleetSize",
+                MAX("ShipTypes"."leadershipValue") AS "fleetLeadershipValue"
+            FROM
+                "Fleets"
+                INNER JOIN "FleetCompositions" ON "FleetCompositions"."fleetId" = "Fleets"."id"
+                INNER JOIN "ShipTypes" ON "ShipTypes".id = "FleetCompositions"."shipTypeId"
+            WHERE
+                "Fleets".id IN(?)
+            GROUP BY
+                "Fleets".id
+        `,
+        {
+            transaction,
+            replacements: [Object.keys(shipsToChangeOfFleets)],
+            type: QueryTypes.SELECT,
+        },
+    );
+
+    resultFleetMaxShips.forEach(({ fleetSize, fleetLeadershipValue }) => {
+        if (fleetSize > Math.max(fleetLeadershipValue, BASE_MAX_FLEET_SIZE)) {
+            throw new HttpError(400, `too_much_ships_in_fleet`);
+        }
     });
 
     // Fetch the new cargo capacity of the fleets

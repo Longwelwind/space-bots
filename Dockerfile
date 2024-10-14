@@ -9,4 +9,6 @@ COPY Procfile .
 
 RUN npm ci
 
+RUN npm run generate-schema
+
 CMD [ "npm", "start" ]

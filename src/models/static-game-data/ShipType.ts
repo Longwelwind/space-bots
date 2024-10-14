@@ -21,6 +21,9 @@ export default class ShipType extends Model {
     declare fightingPower: number;
 
     @Column({ allowNull: false, defaultValue: 0 })
+    declare leadershipValue: number;
+
+    @Column
     declare price: number;
 
     @HasMany(() => ShipTypeBuildResources)

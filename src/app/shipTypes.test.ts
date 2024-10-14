@@ -25,6 +25,6 @@ describe("/v1/ship-types", () => {
             .set("Authorization", "Bearer longwelwind");
 
         expect(res.status).toEqual(200);
-        expect(res.body).toHaveLength(2);
+        expect(res.body).toHaveLength(3);
     });
 });

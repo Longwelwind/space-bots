@@ -1,5 +1,11 @@
 moduleTypeRefineryBlueprintId,resourceId,quantity
-iron_refinement,iron_ore,10
-copper_refinement,copper_ore,10
-steel_making,iron,5
-steel_making,copper,2
+iron_smelting,iron_ore,10
+carbon_smelting,carbon_ore,10
+copper_smelting,copper_ore,10
+aluminium_smelting,aluminium_ore,10
+
+steelmaking,iron,10
+steelmaking,carbon,2
+
+electronics_manufacturing,gold,10
+electronics_manufacturing,copper,8

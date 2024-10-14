@@ -1,0 +1,7 @@
+moduleTypeShipyardBlueprintId,resourceId,quantity
+
+build_miner_mk_ii,steel,50
+
+build_hauler_mk_i,steel,50
+build_hauler_mk_i,aluminium,10
+build_hauler_mk_i,electronics,10

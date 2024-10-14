@@ -113,6 +113,11 @@ export default async function seedTestData(testData: TestData) {
                 cargoCapacity: 10,
             },
             { id: "fighter", name: "Fighter", price: 1000 },
+            {
+                id: "admiral",
+                name: "Admiral",
+                leadershipValue: 10,
+            },
         ],
         options,
     );

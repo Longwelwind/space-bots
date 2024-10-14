@@ -15,7 +15,7 @@ import SystemLink from "../models/static-game-data/SystemLink";
 import StationInventory from "../models/StationInventory";
 import FleetComposition from "../models/FleetComposition";
 import User from "../models/User";
-import { SPEED, createFleet } from "../app";
+import { createFleet } from "../app";
 import changeShipsOfFleets from "../utils/changeShipsOfFleets";
 import scheduleFleetArrival from "../scheduler/scheduleFleetArrival";
 import scheduleMiningFinish from "../scheduler/scheduleMiningFinish";
@@ -28,10 +28,10 @@ import createLogger from "../utils/createLogger";
 import path from "path";
 import HttpError from "../utils/HttpError";
 import setupTransaction from "../utils/setupTransaction";
-import { setTimeout } from "timers/promises";
 import miningSizes from "../models/static-game-data/miningSizes";
-import { QueryTypes, col } from "sequelize";
+import { QueryTypes } from "sequelize";
 import miningYields from "../models/static-game-data/miningYields";
+import { SPEED, MINING_TIME } from "./gameConstants";
 
 const LOGGER = createLogger(path.relative(process.cwd(), __filename));
 
@@ -124,9 +124,8 @@ export default function addFleetsRoutes(router: Router) {
             );
 
             // Start the mining
-            const duration = 4; // in seconds
             fleet.currentAction = "mining";
-            fleet.miningFinishTime = new Date(Date.now() + duration * 1000);
+            fleet.miningFinishTime = new Date(Date.now() + MINING_TIME * 1000);
             fleet.miningResourceId = miningResourceId;
             fleet.miningQuantity = quantityToMine;
 
@@ -151,7 +150,7 @@ export default function addFleetsRoutes(router: Router) {
 
             res.json({
                 finishTime: fleet.miningFinishTime.toISOString(),
-                duration,
+                duration: MINING_TIME,
             });
         });
     });
@@ -350,16 +349,6 @@ export default function addFleetsRoutes(router: Router) {
                 { capacity: newCargoCapacities[fleet.id] },
                 { transaction, where: { id: fleet.inventoryId } },
             );
-
-            // Check if fleets don't have too much ships
-            const totalShips = await FleetComposition.sum("quantity", {
-                where: { fleetId: fleet.id },
-                transaction,
-            });
-
-            if (totalShips > 100) {
-                throw new HttpError(400, "too_much_ships_in_fleet");
-            }
 
             // Remove credits to user
             await user.update(
@@ -718,7 +707,7 @@ export default function addFleetsRoutes(router: Router) {
                 Math.sqrt(
                     Math.pow(destinationSystem.y - originSystem.y, 2) +
                         Math.pow(destinationSystem.x - originSystem.x, 2),
-                ) * SPEED;
+                ) / SPEED;
             const departureTime = new Date(Date.now());
             const arrivalTime = new Date(Date.now() + travelDuration * 1000);
 

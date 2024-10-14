@@ -1,7 +1,9 @@
 moduleTypeId,level,creditCost,maxJobs
 foundry,1,10,1
-foundry,2,50,3
+foundry,2,50,5
+
 semiconductor_facility,1,100,1
-semiconductor_facility,2,500,3
-shipyard,1,100,
-shipyard,2,,
+semiconductor_facility,2,500,5
+
+small_shipyard,1,100,
+small_shipyard,2,500,
