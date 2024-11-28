@@ -15,7 +15,7 @@ async function seedDevData() {
         token: "longwelwind",
     });
 
-    await Inventory.bulkCreate([{ id: UUIDV4_1 }]);
+    await Inventory.bulkCreate([{ id: UUIDV4_1, capacity: 10 }]);
 
     await InventoryItem.bulkCreate([
         { inventoryId: UUIDV4_1, resourceId: "iron", quantity: 10 },
@@ -31,7 +31,7 @@ async function seedDevData() {
     ]);
 
     await FleetComposition.bulkCreate([
-        { fleetId: UUIDV4_1, shipTypeId: "miner", quantity: 1 },
+        { fleetId: UUIDV4_1, shipTypeId: "miner_mk_i", quantity: 1 },
     ]);
 }
 
