@@ -581,6 +581,7 @@ export default function addFleetsRoutes(router: Router) {
                     userId: res.locals.user.id,
                     systemId: systemOfFleet.id,
                 },
+                include: [{ model: Inventory, required: true }],
                 transaction,
                 lock: true,
             });
