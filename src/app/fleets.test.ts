@@ -365,6 +365,53 @@ describe("/v1/fleets", () => {
         expect(resSystem.body.station.cargo).toEqual({ aluminium: 3 });
     });
 
+    test("POST /v1/fleets/{fleetId}/transfer-to-station should transfer resources to the station of the system when an inventory already exists", async () => {
+        await seedTestData({
+            fleets: [
+                {
+                    id: UUIDV4_1,
+                    ownerUserId: UUIDV4_1,
+                    locationSystemId: "omega",
+                    inventoryId: UUIDV4_1,
+                    ships: { miner: 10 },
+                    cargo: { aluminium: 10 },
+                },
+            ],
+            systems: {
+                omega: {
+                    stationInventories: {
+                        [UUIDV4_1]: {
+                            inventoryId: UUIDV4_2,
+                            content: {
+                                aluminium: 20,
+                            },
+                        },
+                    },
+                },
+            },            
+        });
+
+        const res = await request(app)
+            .post(`/v1/fleets/${UUIDV4_1}/transfer-to-station`)
+            .set("Authorization", "Bearer longwelwind")
+            .send({
+                resourcesFromFleetToStation: { aluminium: 3 },
+            });
+
+        expect(res.status).toEqual(200);
+
+        const resFleet = await request(app)
+            .get(`/v1/fleets/${UUIDV4_1}`)
+            .set("Authorization", "Bearer longwelwind");
+        const resSystem = await request(app)
+            .get(`/v1/systems/omega`)
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(resFleet.body.cargo).toEqual({ aluminium: 10 - 3 });
+
+        expect(resSystem.body.station.cargo).toEqual({ aluminium: 20 + 3 });
+    });
+
     test("POST /v1/fleets/{fleetId}/transfer should not authorize new fleet with no ships", async () => {
         await seedTestData({
             fleets: [
