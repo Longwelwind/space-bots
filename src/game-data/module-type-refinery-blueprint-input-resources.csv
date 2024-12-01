@@ -3,6 +3,7 @@ iron_smelting,iron_ore,10
 carbon_smelting,carbon_ore,10
 copper_smelting,copper_ore,10
 aluminium_smelting,aluminium_ore,10
+gold_smelting,gold_ore,10
 
 steelmaking,iron,10
 steelmaking,carbon,2
