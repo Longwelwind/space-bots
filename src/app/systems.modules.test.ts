@@ -50,6 +50,48 @@ describe("/v1/systems/{systemId}/modules", () => {
         ]);
     });
 
+    test("GET /v1/systems/{systemId}/station/modules pass shipyard", async () => {
+        await seedTestData({
+            systems: {
+                omega: {
+                    modules: {
+                        [UUIDV4_1]: [
+                            {
+                                id: UUIDV4_1,
+                                moduleTypeId: "refinery-super-alloy",
+                                level: 1,
+                            },
+                        ],
+                    },
+                },
+                "mega-torox": {
+                    modules: {
+                        [UUIDV4_1]: [
+                            {
+                                id: UUIDV4_2,
+                                moduleTypeId: "shipyard",
+                                level: 1,
+                            },
+                        ],
+                    },
+                },
+            },
+        });
+
+        const res = await request(app)
+            .get("/v1/systems/mega-torox/station/modules/")
+            .set("Authorization", "Bearer longwelwind");
+
+        expect(res.status).toEqual(200);
+        expect(res.body.items).toEqual([
+            {
+                moduleTypeId: "shipyard",
+                kind: "shipyard",
+                level: 1
+            },
+        ]);
+    });
+
     test("POST /v1/systems/{systemId}/station/modules/build when building a new module", async () => {
         await seedTestData({
             users: {

@@ -161,6 +161,10 @@ export function serializeModule(module: Module) {
                       finishTime: job.finishTime.toISOString(),
                   })),
               }
+            : module.moduleType.kind == "shipyard"
+            ? {
+                kind: "shipyard" as const
+            }
             : (() => {
                   throw new Error();
               })()),
